@@ -5,8 +5,9 @@ import { ResponseInterceptor } from './common/interceptor/response.interceptor';
 import * as express from 'express';
 import { join } from 'path';
 
-async function bootstrap() {
+export async function app() {
   const app = await NestFactory.create(AppModule, { cors: true });
+
   app.useGlobalInterceptors(new ResponseInterceptor());
   app.useGlobalFilters(new ErrorFilter());
 
@@ -15,8 +16,10 @@ async function bootstrap() {
     express.static(join(process.cwd(), 'uploads/image')),
   );
 
-  // await app.listen(process.env.PORT ?? 3000, '192.168.1.12');
-  // await app.listen(process.env.PORT ?? 3000, '192.168.43.147');
-  await app.listen(process.env.PORT ?? 3000);
+  return app;
 }
-bootstrap();
+
+// Ini hanya dijalankan saat local (bukan di Vercel)
+if (require.main === module) {
+  app().then((app) => app.listen(process.env.PORT ?? 3000));
+}
