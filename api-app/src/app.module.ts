@@ -10,6 +10,7 @@ import { ImageUploadProvider } from './config/multer/image/providers/image-uploa
 import { StockModule } from './modules/stock/stock.module';
 import { CategoryModule } from './modules/category/category.module';
 import { WarehouseModule } from './modules/warehouse/warehouse.module';
+import { StatusSystemController } from './status-system/status-system.controller';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { WarehouseModule } from './modules/warehouse/warehouse.module';
     CategoryModule,
     WarehouseModule,
   ],
-  controllers: [],
+  controllers: [StatusSystemController],
   providers: [ImageUploadProvider],
 })
 export class AppModule {}
