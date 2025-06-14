@@ -391,13 +391,12 @@ const submitForm = async () => {
       await axios.put(`${import.meta.env.VITE_API_URL}/item/${editedItem.value.id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
-      Swal.fire('Berhasil', 'Item berhasil diperbarui', 'success')
-    } else {
-      // Create item baru
-      await axios.post(`${import.meta.env.VITE_API_URL}/item`, formData, {
+      const { data } = await axios.put(`${import.meta.env.VITE_API_URL}/item/${editedItem.value.id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
-      Swal.fire('Berhasil', 'Item berhasil ditambahkan', 'success')
+      console.log(data)
+      Swal.fire('Berhasil', 'Item berhasil diperbarui', 'success')
+      emit('updated', data.data)
     }
     closeDialog()
   } catch (error) {
@@ -410,15 +409,12 @@ const submitForm = async () => {
 const submitRestockForm = async () => {
   try {
     console.log(props.item.id)
-    await axios.post(
-      `${import.meta.env.VITE_API_URL}/item/${props.item.id}/stock`,
-      {
-        transaction_number: restockForm.value.transaction_number_auto ? 'auto' : restockForm.value.transaction_number,
-        type: restockForm.value.type.value,
-        description: restockForm.value.description,
-        quantity: restockForm.value.quantity,
-      },
-    )
+    await axios.post(`${import.meta.env.VITE_API_URL}/item/${props.item.id}/stock`, {
+      transaction_number: restockForm.value.transaction_number_auto ? 'auto' : restockForm.value.transaction_number,
+      type: restockForm.value.type.value,
+      description: restockForm.value.description,
+      quantity: restockForm.value.quantity,
+    })
     Swal.fire('Berhasil', 'Item berhasil diupdate', 'success')
     closeDialog()
   } catch (error) {

@@ -10,7 +10,7 @@ const customers = ref<{ id: number; name: string; uid_card: string; created_at: 
 // Fungsi untuk mengambil data pelanggan dari API
 const fetchCustomers = async () => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/customer`)
+    const response = await axios.get('http://localhost:3000/customer')
     customers.value = response.data.data.customers // Menyimpan data ke state
   } catch (error) {
     console.error('Gagal mengambil data pelanggan:', error)

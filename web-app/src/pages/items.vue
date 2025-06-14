@@ -110,6 +110,11 @@ const nextPage = () => {
   page.value++
 }
 
+const onItemUpdated = async updatedData => {
+  const index = items.value.findIndex(item => item.id === updatedData.id)
+  items.value[index] = { ...items.value[index], ...updatedData }
+}
+
 const dialog = ref<boolean>(false)
 const selectedPrologue = ref<string>('')
 const openDialog = (prologue: string) => {
@@ -216,6 +221,7 @@ onMounted(async () => {
               :key="item.id"
               :item="item"
               @close="handleRemove(item.id)"
+              @updated="onItemUpdated"
             />
           </VCol>
         </template>

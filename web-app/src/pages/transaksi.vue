@@ -20,29 +20,28 @@
           clearable
         />
 
-        <VRow class="mt-4">
+        <template v-if="products.length > 0">
+          <VCol
+            cols="4"
+            class="mb-3"
+            v-for="item in products"
+            @click="addToCart(item)"
+          >
+            <ItemCard
+              :key="item.id"
+              :item="item"
+              @close="handleRemove(item.id)"
+            />
+          </VCol>
+        </template>
+        <template v-else>
           <VCol
             cols="12"
-            md="4"
-            class="product-list"
-            v-for="product in filteredProducts"
+            class="text-center py-10"
           >
-            <VCard
-              :key="product.id"
-              class="product-card"
-              outlined
-              @click="addToCart(product)"
-            >
-              <VImg
-                :src="product.image_url"
-                height="140"
-                class="product-image"
-              />
-              <VCardTitle class="product-title">{{ product.name }}</VCardTitle>
-              <VCardSubtitle class="product-price">Rp {{ product.price.toLocaleString() }}</VCardSubtitle>
-            </VCard>
+            <p class="text-medium-emphasis">Belum ada item tersedia.</p>
           </VCol>
-        </VRow>
+        </template>
       </VCol>
 
       <!-- Keranjang Belanja -->
@@ -141,9 +140,13 @@
 <script>
 import axios from 'axios'
 import Swal from 'sweetalert2' // Import SweetAlert2
+import ItemCard from '@/views/pages/penjualan/ItemCard.vue'
 
 export default {
   name: 'CashierPage',
+  components: {
+    ItemCard,
+  },
   data() {
     return {
       searchQuery: '',
