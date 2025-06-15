@@ -434,9 +434,10 @@ const deleteItem = async (ids: number[]) => {
     confirmButtonText: 'Ya, hapus!',
     cancelButtonText: 'Batal',
     buttonsStyling: false,
+    reverseButtons: true,
     customClass: {
-      confirmButton: 'v-btn v-btn--elevated v-btn--density-default v-btn--size-default bg-error text-white',
-      cancelButton: 'v-btn v-btn--elevated v-btn--density-default v-btn--size-default bg-secondary text-white ml-3',
+      confirmButton: 'v-btn v-btn--elevated v-btn--density-default v-btn--size-default bg-error text-white ml-3',
+      cancelButton: 'v-btn v-btn--elevated v-btn--density-default v-btn--size-default bg-secondary text-white',
     },
   })
 

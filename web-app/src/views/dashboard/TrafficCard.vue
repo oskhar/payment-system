@@ -9,7 +9,7 @@ const trafficStats = [
 <template>
   <VCard elevation="2">
     <VCardItem>
-      <VCardTitle>Transactions</VCardTitle>
+      <VCardTitle>Penjualan Hari Ini</VCardTitle>
 
       <template #append>
         <div class="me-n3">

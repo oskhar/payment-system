@@ -38,6 +38,65 @@ const toggleSelectAll = () => {
   }
 }
 
+const addCategory = async () => {
+  const { value: categoryName } = await Swal.fire({
+    title: 'Tambah Kategori',
+    input: 'text',
+    inputLabel: 'Nama Kategori',
+    inputPlaceholder: 'Masukkan nama kategori',
+    showCancelButton: true,
+    reverseButtons: true,
+    confirmButtonText: 'Tambah',
+    inputValidator: value => {
+      if (!value) return 'Nama kategori tidak boleh kosong!'
+    },
+    didOpen: () => {
+      const swalEl = document.querySelector('.swal2-popup')
+      if (swalEl) {
+        swalEl.style.zIndex = '5000' // Lebih tinggi dari Vuetify dialog
+      }
+
+      const backdrop = document.querySelector('.swal2-backdrop-show')
+      if (backdrop) {
+        backdrop.style.zIndex = '4999'
+      }
+    },
+    customClass: {
+      confirmButton: 'v-btn v-btn--elevated v-btn--density-default v-btn--size-default bg-primary text-white',
+      cancelButton: 'v-btn v-btn--elevated v-btn--density-default v-btn--size-default bg-secondary text-white ml-3',
+    },
+  })
+
+  if (categoryName) {
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/category`, {
+        name: categoryName,
+      })
+
+      // Tampilkan notifikasi sukses
+      Swal.fire({
+        icon: 'success',
+        title: 'Kategori Ditambahkan!',
+        text: res.data.message || 'Kategori berhasil ditambahkan.',
+        timer: 2000,
+        showConfirmButton: false,
+      })
+
+      // Tambahkan ke daftar kategori
+      categories.value.push({
+        id: res.data.data?.id || Math.random(), // fallback id
+        name: categoryName,
+      })
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Menambahkan Kategori',
+        text: error.response?.data?.message || 'Terjadi kesalahan.',
+      })
+    }
+  }
+}
+
 // Fungsi untuk mengambil data pelanggan
 const fetchCategory = async () => {
   try {
@@ -308,8 +367,16 @@ onMounted(async () => {
             multiple
             variant="outlined"
           >
-            <!-- Tambahkan tombol "Pilih Semua" di awal daftar -->
+            <!-- Pilih Semua -->
             <template #prepend-item>
+              <VListItem
+                title="Tambah Kategori"
+                @click="addCategory"
+              >
+                <template #prepend>
+                  <VIcon>ri-add-box-line</VIcon>
+                </template>
+              </VListItem>
               <VListItem
                 title="Pilih Semua"
                 @click="toggleSelectAll"
@@ -319,6 +386,9 @@ onMounted(async () => {
                 </template>
               </VListItem>
             </template>
+
+            <!-- Tambah Kategori -->
+            <template #append-item> </template>
           </VSelect>
           <VTextField
             class="mb-3"
@@ -374,5 +444,8 @@ onMounted(async () => {
 }
 .icon-img {
   height: 200px;
+}
+.custom-swal-zindex {
+  z-index: 90000 !important;
 }
 </style>

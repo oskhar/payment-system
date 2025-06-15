@@ -11,8 +11,8 @@ export class Transaction extends AbstractEntity<Transaction> {
   @Column({ type: 'enum', enum: PaymentMethodEnum })
   payment_method: PaymentMethodEnum;
 
-  @Column()
-  is_paid_off: boolean;
+  // @Column()
+  // is_paid_off: boolean;
 
   @OneToMany(
     () => TransactionItem,

@@ -4,7 +4,7 @@
       cols="12"
       md="5"
     >
-      <TotalEarning />
+      <TrafficCard />
     </VCol>
 
     <!-- Laba/Rugi Tahun Ini -->
@@ -12,7 +12,7 @@
       cols="12"
       md="7"
     >
-      <TrafficCard />
+      <TotalEarning />
     </VCol>
 
     <!-- Grafik Penjualan -->

@@ -21,34 +21,14 @@ export class TransactionService {
 
   async create(createTransactionDto: CreateTransactionDto) {
     /*
-     * Periksa apakah nomor transaksi sudah
-     * digunakan sebelumnya
-     */
-    const isAutoTransactionNumber =
-      createTransactionDto.transaction_number &&
-      createTransactionDto.transaction_number.toLowerCase() == 'auto';
-
-    const existDuplicateTransaction =
-      await this.transactionRepository.findOneBy({
-        transaction_number: createTransactionDto.transaction_number,
-      });
-
-    if (existDuplicateTransaction && !isAutoTransactionNumber)
-      throw new UnprocessableEntityException(
-        'Transaction number Transaction is already exist',
-      );
-
-    /*
      * Generate nomor transaksi jika transaction_number
      * adalah auto
      */
-    if (isAutoTransactionNumber) {
-      const countTransaction = await this.transactionRepository.count();
-      createTransactionDto.transaction_number = codeGenerator(
-        'TP',
-        countTransaction,
-      );
-    }
+    const countTransaction = await this.transactionRepository.count();
+    createTransactionDto.transaction_number = codeGenerator(
+      'TP',
+      countTransaction,
+    );
 
     const newTransaction = await this.transactionRepository.save(
       new Transaction({

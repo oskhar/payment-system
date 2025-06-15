@@ -44,7 +44,7 @@ const moreList = [
 <template>
   <VCard>
     <VCardItem>
-      <VCardTitle>Metode Pembayaran</VCardTitle>
+      <VCardTitle>Pembayaran Non Tunai</VCardTitle>
 
       <template #append>
         <div class="me-n3">

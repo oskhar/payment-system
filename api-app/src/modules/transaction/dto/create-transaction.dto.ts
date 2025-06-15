@@ -7,6 +7,7 @@ export const CreateTransactionItemSchema = z.object({
 });
 
 export const CreateTransactionSchema = z.object({
+  transaction_number: z.string().optional().nullable().default(''),
   payment_method: z.nativeEnum(PaymentMethodEnum),
   transaction_items: z.array(CreateTransactionItemSchema),
 });
