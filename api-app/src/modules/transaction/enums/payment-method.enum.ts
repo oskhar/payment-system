@@ -1,4 +1,7 @@
 export enum PaymentMethodEnum {
-  CARD = 'card',
+  DANA = 'dana',
+  BRI = 'bri',
+  BCA = 'bca',
+  MANDIRI = 'mandiri',
   CASH = 'cash',
 }

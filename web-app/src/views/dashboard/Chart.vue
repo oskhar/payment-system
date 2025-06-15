@@ -1,10 +1,22 @@
 <template>
   <VRow dense>
-    <!-- Grafik Penjualan -->
     <VCol
       cols="12"
-      md="9"
+      md="5"
     >
+      <TotalEarning />
+    </VCol>
+
+    <!-- Laba/Rugi Tahun Ini -->
+    <VCol
+      cols="12"
+      md="7"
+    >
+      <TrafficCard />
+    </VCol>
+
+    <!-- Grafik Penjualan -->
+    <VCol cols="12">
       <VCard class="pa-4 h-100">
         <VCardTitle class="d-flex justify-space-between align-center">
           <span class="text-h4">Grafik Penjualan</span>
@@ -33,134 +45,12 @@
         </div>
       </VCard>
     </VCol>
-
-    <!-- Laba/Rugi Tahun Ini -->
-    <VCol
-      cols="12"
-      md="3"
-    >
-      <VCard class="pa-4 h-100">
-        <VCardTitle class="d-flex justify-space-between align-center">
-          <span class="text-h4">Total Hari ini</span>
-          <div>
-            <VBtn
-              icon
-              variant="text"
-            >
-              <VIcon>ri-refresh-line</VIcon>
-            </VBtn>
-            <VBtn
-              icon
-              variant="text"
-            >
-              <VIcon>ri-calendar-line</VIcon>
-            </VBtn>
-          </div>
-        </VCardTitle>
-        <VCardItem>
-          <div class="text-h4 mb-4 text-primary">Rp 55.000,00</div>
-
-          <div class="text-body-1">
-            <div class="d-flex justify-space-between">
-              <span>Jumlah Transaksi:</span>
-              <strong>45</strong>
-            </div>
-            <div class="d-flex justify-space-between">
-              <span>Jenis Barang:</span>
-              <strong>18</strong>
-            </div>
-            <div class="d-flex justify-space-between">
-              <span>Jumlah Barang:</span>
-              <strong>320</strong>
-            </div>
-          </div>
-        </VCardItem>
-      </VCard>
-    </VCol>
-
-    <!-- Penjualan per Hari -->
-    <VCol
-      cols="12"
-      md="6"
-    >
-      <VCard class="pa-4 h-100">
-        <VCardTitle class="d-flex justify-space-between align-center">
-          <span class="text-h4">Laba/Rugi Tahun Ini</span>
-          <div>
-            <VBtn
-              icon
-              variant="text"
-            >
-              <VIcon>ri-refresh-line</VIcon>
-            </VBtn>
-            <VBtn
-              icon
-              variant="text"
-            >
-              <VIcon>ri-calendar-line</VIcon>
-            </VBtn>
-          </div>
-        </VCardTitle>
-        <VRow no-gutters>
-          <VCol
-            cols="12"
-            sm="6"
-          >
-            <div style="height: 200px">
-              <DoughnutChart
-                :chart-data="doughnutData"
-                :chart-options="doughnutOptions"
-              />
-            </div>
-          </VCol>
-          <VCol
-            cols="12"
-            sm="6"
-            class="text-caption ps-4"
-          >
-            <div
-              v-for="(value, key) in revenueBreakdown"
-              :key="key"
-              class="mb-2 d-flex align-center"
-            >
-              <VIcon
-                :color="colors[key]"
-                size="12"
-                class="me-2"
-                >ri-checkbox-blank-circle-fill</VIcon
-              >
-              <div>
-                <strong>{{ key }}</strong> - {{ formatRupiah(value) }}
-              </div>
-            </div>
-          </VCol>
-        </VRow>
-      </VCard>
-    </VCol>
-
-    <!-- Penjualan per Kategori -->
-    <VCol
-      cols="12"
-      md="6"
-    >
-      <VCard class="pa-4 h-100">
-        <VCardTitle class="text-h4">Penjualan per Kategori</VCardTitle>
-        <div style="height: 300px">
-          <BarChart
-            :chart-data="categoryChartData"
-            :chart-options="categoryChartOptions"
-          />
-        </div>
-      </VCard>
-    </VCol>
   </VRow>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import LineChart from '@/views/dashboard/LineChart.vue'
-import DoughnutChart from '@/views/dashboard/DoughnutChart.vue'
-import BarChart from '@/views/dashboard/BarChart.vue'
 
 import {
   Chart as ChartJS,
@@ -174,19 +64,29 @@ import {
   LinearScale,
   ArcElement,
 } from 'chart.js'
+import TotalEarning from '@/views/dashboard/AnalyticsTotalEarning.vue'
+import TrafficCard from '@/views/dashboard/TrafficCard.vue'
 
 ChartJS.register(Title, Tooltip, Legend, LineElement, BarElement, PointElement, CategoryScale, LinearScale, ArcElement)
 
 const chartData = {
-  labels: Array.from({ length: 30 }, (_, i) => `${i + 1} Jan`),
+  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
   datasets: [
     {
       label: 'Penjualan',
-      data: Array.from({ length: 30 }, () => Math.floor(Math.random() * 20000 + 10000)),
-      borderColor: '#3b82f6',
-      backgroundColor: '#3b82f680',
-      fill: true,
+      data: [12000, 14000, 10000, 18000, 15000, 17000, 16000],
+      borderColor: '#6366f1', // warna garis (biru keunguan)
+      backgroundColor: 'rgba(99, 102, 241, 0.2)', // area bawah
+      pointBackgroundColor: '#6366f1',
+      pointRadius: context => {
+        // Tampilkan titik hanya di data terakhir
+        const index = context.dataIndex
+        const total = context.chart.data.datasets[0].data.length
+        return index === total - 1 ? 6 : 0
+      },
+      pointHoverRadius: 6,
       tension: 0.4,
+      fill: true,
     },
   ],
 }
@@ -196,9 +96,27 @@ const chartOptions = {
   maintainAspectRatio: false,
   plugins: {
     legend: { display: false },
+    tooltip: {
+      mode: 'index',
+      intersect: false,
+    },
   },
   scales: {
-    y: { beginAtZero: true },
+    x: {
+      grid: { display: false },
+      ticks: { color: '#6b7280' }, // abu-abu
+    },
+    y: {
+      beginAtZero: true,
+      ticks: { color: '#6b7280' },
+      grid: {
+        color: 'rgba(0,0,0,0.05)',
+        drawBorder: false,
+      },
+    },
+  },
+  elements: {
+    line: { borderWidth: 2 },
   },
 }
 

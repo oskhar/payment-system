@@ -105,6 +105,10 @@ const deleteStock = async (id: number) => {
     showCancelButton: true,
     confirmButtonText: 'Ya, hapus!',
     cancelButtonText: 'Batal',
+    reverseButtons: true,
+    customClass: {
+      actions: 'swal2-reverse-buttons',
+    },
   })
 
   if (confirm.isConfirmed) {
@@ -155,7 +159,10 @@ onMounted(async () => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(s, i) in stocks" :key="s.id">
+          <tr
+            v-for="(s, i) in stocks"
+            :key="s.id"
+          >
             <td>{{ i + 1 }}</td>
             <td class="text-center">{{ s.item?.name || '-' }}</td>
             <td class="text-center">{{ s.transaction_number }}</td>
@@ -168,8 +175,17 @@ onMounted(async () => {
             <td class="text-center">{{ s.description || '-' }}</td>
             <td class="text-center">{{ new Date(s.created_at).toLocaleString() }}</td>
             <td class="text-center">
-              <VBtn icon="ri-pencil-line" color="primary" @click="openForm(s)" />
-              <VBtn icon="ri-delete-bin-line" color="error" class="ml-2" @click="deleteStock(s.id)" />
+              <VBtn
+                icon="ri-pencil-line"
+                color="primary"
+                @click="openForm(s)"
+              />
+              <VBtn
+                icon="ri-delete-bin-line"
+                color="error"
+                class="ml-2"
+                @click="deleteStock(s.id)"
+              />
             </td>
           </tr>
         </tbody>
@@ -178,7 +194,10 @@ onMounted(async () => {
   </VCard>
 
   <!-- Dialog Form -->
-  <VDialog v-model="dialogForm" max-width="500">
+  <VDialog
+    v-model="dialogForm"
+    max-width="500"
+  >
     <VCard>
       <VCardTitle>
         {{ isEdit ? 'Edit Stok' : 'Tambah Stok' }}
@@ -206,7 +225,7 @@ onMounted(async () => {
             label="Tipe Transaksi"
             :items="[
               { title: 'Stok Masuk', value: 'stock_in' },
-              { title: 'Stok Keluar', value: 'stock_out' }
+              { title: 'Stok Keluar', value: 'stock_out' },
             ]"
             item-title="title"
             item-value="value"
@@ -221,10 +240,18 @@ onMounted(async () => {
         </VForm>
       </VCardText>
       <VCardActions class="justify-end px-5 pb-4">
-        <VBtn variant="outlined" color="secondary" @click="closeForm">
+        <VBtn
+          variant="outlined"
+          color="secondary"
+          @click="closeForm"
+        >
           Batal
         </VBtn>
-        <VBtn variant="elevated" color="primary" @click="submitForm">
+        <VBtn
+          variant="elevated"
+          color="primary"
+          @click="submitForm"
+        >
           Simpan
         </VBtn>
       </VCardActions>

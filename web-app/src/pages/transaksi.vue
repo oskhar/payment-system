@@ -14,25 +14,27 @@
           v-model="searchQuery"
           label="Cari Produk..."
           prepend-inner-icon="ri-search-line"
-          class="search-input"
+          class="search-input mb-3"
           outlined
           dense
           clearable
         />
 
         <template v-if="products.length > 0">
-          <VCol
-            cols="4"
-            class="mb-3"
-            v-for="item in products"
-            @click="addToCart(item)"
-          >
-            <ItemCard
-              :key="item.id"
-              :item="item"
-              @close="handleRemove(item.id)"
-            />
-          </VCol>
+          <VRow>
+            <VCol
+              cols="4"
+              class="mb-3"
+              v-for="item in products"
+              @click="addToCart(item)"
+            >
+              <ItemCard
+                :key="item.id"
+                :item="item"
+                @close="handleRemove(item.id)"
+              />
+            </VCol>
+          </VRow>
         </template>
         <template v-else>
           <VCol
@@ -73,7 +75,7 @@
               style="border-bottom: 1px solid black"
             >
               <VListItemSubtitle class="d-flex justify-space-between">
-                <span class="text-h5">Rp {{ item.product.price.toLocaleString() }} x</span>
+                <span class="text-h4 text-primary">{{ item.product.name }}</span>
                 <div class="quantity-controls d-flex align-center">
                   <VBtn
                     icon
@@ -107,8 +109,8 @@
               </VListItemSubtitle>
 
               <VListItemAction class="d-flex justify-space-between mt-3">
-                <span class="text-h4 text-primary">{{ item.product.name }}</span>
-                <span class="text-h5">: Rp {{ item.product.price.toLocaleString() }}</span>
+                <span class="text-h5">Rp {{ item.product.price.toLocaleString() }} x {{ item.quantity }}</span>
+                <span class="text-h5">: Rp {{ (item.product.price * item.quantity).toLocaleString() }}</span>
               </VListItemAction>
             </VListItem>
           </VList>
@@ -155,7 +157,7 @@ export default {
       // Membuat instance Swal toast agar dapat digunakan kembali
       toast: Swal.mixin({
         toast: true,
-        position: 'bottom-end', // pojok kanan bawah
+        position: 'top', // pojok kanan bawah
         showConfirmButton: false,
         timer: 3000, // durasi tampil 3 detik
         timerProgressBar: true,

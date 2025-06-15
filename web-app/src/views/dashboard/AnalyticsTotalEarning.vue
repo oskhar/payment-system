@@ -23,6 +23,13 @@ const earnings = [
     title: 'Aviato',
     subtitle: 'HTML & Anguler',
     amount: '$1,2450.80',
+    progress: 'primary',
+  },
+  {
+    avatar: aviato,
+    title: 'Aviato',
+    subtitle: 'HTML & Anguler',
+    amount: '$1,2450.80',
     progress: 'secondary',
   },
 ]
@@ -37,7 +44,7 @@ const moreList = [
 <template>
   <VCard>
     <VCardItem>
-      <VCardTitle>Total Earning</VCardTitle>
+      <VCardTitle>Metode Pembayaran</VCardTitle>
 
       <template #append>
         <div class="me-n3">

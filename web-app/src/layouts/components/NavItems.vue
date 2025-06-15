@@ -34,16 +34,6 @@ import VerticalNavLink from '@layouts/components/VerticalNavLink.vue'
 
   <VerticalNavLink
     :item="{
-      title: 'Top Up',
-      icon: 'ri-git-repository-commits-line',
-      to: '/top-up',
-      badgeContent: 'Freemium',
-      badgeClass: 'bg-light-warning text-warning',
-    }"
-  />
-
-  <VerticalNavLink
-    :item="{
       title: 'Riwayat Transaksi',
       icon: 'ri-exchange-dollar-line',
       to: '/riwayat',
@@ -90,27 +80,15 @@ import VerticalNavLink from '@layouts/components/VerticalNavLink.vue'
 
   <VerticalNavLink
     :item="{
-      title: 'Gudang',
+      title: 'Toko',
       icon: 'ri-store-line',
       to: '/gudang',
-      badgeContent: 'Pro',
-      badgeClass: 'bg-light-primary text-primary',
     }"
   />
 
   <VerticalNavSectionTitle
     :item="{
       heading: 'Settings',
-    }"
-  />
-
-  <VerticalNavLink
-    :item="{
-      title: 'Fitur Aktif',
-      icon: 'ri-toggle-line',
-      to: '/fitur-aktif',
-      badgeContent: 'Pro',
-      badgeClass: 'bg-light-primary text-primary',
     }"
   />
 

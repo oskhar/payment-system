@@ -11,23 +11,6 @@ import Chart from '@/views/dashboard/Chart.vue'
       cols="12"
       md="12"
     >
-      <Hi />
-    </VCol>
-  </VRow>
-  <VRow class="mt-8">
-    <VCol cols="6">
-      <UpgradePlan />
-    </VCol>
-
-    <VCol cols="6">
-      <IntegrationPlan />
-    </VCol>
-  </VRow>
-  <VRow class="match-height">
-    <VCol
-      cols="12"
-      md="12"
-    >
       <Chart />
     </VCol>
   </VRow>

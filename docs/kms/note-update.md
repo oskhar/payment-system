@@ -1,0 +1,9 @@
+- [ ] print nota lewat bluetooth
+- [ ] bisa edit data item saat transaksi
+- [ ] masukan logo dalam printer nota
+- [ ] setiap transaksi bisa menggunakan berbagai metode pembayaran
+- [ ] satu barcode bisa mewakili berbagai item
+- [ ] tambahkan select toko di navbar
+- [ ] tambahkan atribut barcode, harga berdasarkan qty, harga pada user berbeda di fitur item
+- [ ] fitur draft transaksi
+- [ ] hilangkan saldo user
