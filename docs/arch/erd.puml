@@ -1,0 +1,106 @@
+@startuml
+!theme mars
+
+entity categories {
+  id : integer <<PK>>
+  created_at : datetime
+  name : varchar
+}
+
+entity items {
+  id : integer <<PK>>
+  created_at : datetime
+  name : varchar
+  barcode : varchar
+  image_url : varchar
+  description : text
+}
+
+entity item_category {
+  id : integer <<PK>>
+  item_id : integer <<FK>>
+  category_id : integer <<FK>>
+  created_at : datetime
+}
+
+entity units {
+  id : integer <<PK>>
+  created_at : datetime
+  name : varchar
+  abbreviation : varchar
+}
+
+entity item_prices {
+  id : integer <<PK>>
+  price : decimal
+  item_id : integer <<FK>>
+  unit_id : integer <<FK>>
+  min_quantity : integer
+}
+
+entity stock {
+  id : integer <<PK>>
+  created_at : datetime
+  transaction_number : varchar
+  type : varchar
+  description : text
+  quantity : integer
+  item_id : integer <<FK>>
+  branch_id : integer <<FK>>
+  unit_id : integer <<FK>>
+}
+
+entity branches {
+  id : integer <<PK>>
+  created_at : datetime
+  name : varchar
+  address : text
+  image_url : varchar
+}
+
+entity users {
+  id : integer <<PK>>
+  created_at : datetime
+  password : varchar
+  whatsapp : varchar
+  email : varchar
+  role : varchar
+}
+
+entity transactions {
+  id : integer <<PK>>
+  created_at : datetime
+  transaction_number : varchar
+  payment_method : varchar
+  user_id : integer <<FK>>
+  branch_id : integer <<FK>>
+}
+
+entity transaction_item {
+  transaction_id : integer <<PK>> <<FK>>
+  item_id : integer <<PK>> <<FK>>
+  created_at : datetime
+  quantity : integer
+  price : decimal
+  unit_id : integer <<FK>>
+}
+
+' Relationships'
+item_category -- categories
+item_category -- items
+
+item_prices -- items
+item_prices -- units
+
+stock -- items
+stock -- branches
+stock -- units
+
+transactions -- branches
+transactions -- users
+transactions -- transaction_item
+
+transaction_item -- items
+transaction_item -- units
+
+@enduml

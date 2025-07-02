@@ -1,0 +1,231 @@
+---
+// Import the necessary components
+import MainLayout from "@/layouts/MainLayout.astro";
+import HeroSection from "@components/sections/landing/HeroSection.astro";
+import HeroSectionAlt from "@components/sections/landing/HeroSectionAlt.astro";
+import ClientsSection from "@components/sections/landing/ClientsSection.astro";
+import FeaturesGeneral from "@components/sections/features/FeaturesGeneral.astro";
+import FeaturesNavs from "@components/sections/features/FeaturesNavs.astro";
+import TestimonialsSection from "@components/sections/testimonials/TestimonialsSection.astro";
+import PricingSection from "@components/sections/pricing/PricingSection.astro";
+import FAQ from "@components/sections/misc/FAQ.astro";
+import AnnouncementBanner from "@components/ui/banners/AnnouncementBanner.astro";
+
+// --- Local Image Imports ---
+// Pastikan path gambar ini sesuai dengan struktur proyek Anda.
+import heroImage from "@/assets/images/sembako-hero.jpg";
+import featureImage from "@/assets/images/produk-sembako.jpg";
+import pasokanUsahaImage from "@/assets/images/pasokan-usaha.jpg";
+import kebutuhanHarianImage from "@/assets/images/kebutuhan-harian.jpg";
+import stokWarungImage from "@/assets/images/stok-warung.jpg";
+import avatar1 from "@/assets/images/avatars/avatar1.jpg";
+import avatar2 from "@/assets/images/avatars/avatar2.jpg";
+import avatar3 from "@/assets/images/avatars/avatar3.jpg";
+import avatar4 from "@/assets/images/avatars/avatar4.jpg";
+import testimonialAvatar from "@/assets/images/avatars/testimonial-avatar.jpg";
+
+// --- Data Definitions ---
+
+// Avatars for Hero Section using local imports
+const avatarSrcs = [avatar1, avatar2, avatar3, avatar4];
+
+// Partner logos (example) - These can also be imported locally if desired.
+const partnersData = [
+    { src: "https://placehold.co/158x48/ffffff/cbd5e1?text=Resto+Jaya", alt: "Logo Resto Jaya" },
+    { src: "https://placehold.co/158x48/ffffff/cbd5e1?text=Warung+Bu+Ani", alt: "Logo Warung Bu Ani" },
+    { src: "https://placehold.co/158x48/ffffff/cbd5e1?text=Katering+Lezat", alt: "Logo Katering Lezat" },
+    { src: "https://placehold.co/158x48/ffffff/cbd5e1?text=Cafe+Senja", alt: "Logo Cafe Senja" },
+    { src: "https://placehold.co/158x48/ffffff/cbd5e1?text=Toko+Sahabat", alt: "Logo Toko Sahabat" },
+];
+
+// Features data
+const features = [
+  {
+    icon: "ph:shopping-cart-bold",
+    title: "Produk Terlengkap",
+    description: "Dari beras, minyak, gula, hingga bumbu dapur, kami menyediakan semua kebutuhan pokok Anda dalam satu tempat.",
+  },
+  {
+    icon: "ph:tag-bold",
+    title: "Harga Kompetitif",
+    description: "Nikmati harga grosir terbaik untuk pembelian dalam jumlah besar dan harga retail yang terjangkau untuk kebutuhan harian.",
+  },
+  {
+    icon: "ph:truck-bold",
+    title: "Pengiriman Cepat",
+    description: "Kami menyediakan layanan pengiriman yang cepat dan andal untuk memastikan pesanan Anda tiba tepat waktu.",
+  },
+];
+
+// Pricing data
+const pricing = {
+  title: "Pilihan Paket Sesuai Kebutuhan Anda",
+  subTitle: "Kami menawarkan harga yang fleksibel baik untuk kebutuhan retail maupun grosir.",
+  badge: "Paling Populer",
+  thirdOption: "Butuh penawaran untuk partai besar?",
+  btnText: "Hubungi Kami",
+  starterKit: {
+      name: "Paket Retail",
+      description: "Untuk kebutuhan harian Anda.",
+      price: "Mulai 10rb",
+      cents: "",
+      billingFrequency: "/ item",
+      features: ["Belanja satuan", "Tanpa minimum order", "Pilihan produk lengkap"],
+      purchaseBtnTitle: "Mulai Belanja",
+      purchaseLink: "/produk",
+  },
+  professionalToolbox: {
+      name: "Paket Usaha",
+      description: "Untuk warung, toko, dan semi-grosir.",
+      price: "Harga Spesial",
+      cents: "",
+      billingFrequency: "untuk mitra",
+      features: ["Pembelian semi-grosir", "Stok produk terlaris", "Dukungan penjualan", "Prioritas stok"],
+      purchaseBtnTitle: "Jadi Mitra",
+      purchaseLink: "/kontak",
+  },
+};
+
+// FAQ data
+const faqs = {
+  subTitle: "Temukan jawaban untuk pertanyaan umum tentang layanan dan produk kami.",
+  faqs: [
+    {
+      question: "Apakah Toko Muvie melayani pembelian grosir?",
+      answer: "Tentu saja. Kami adalah pusat grosir sembako yang melayani berbagai jenis usaha seperti restoran, katering, warung, dan toko kelontong dengan harga yang sangat kompetitif.",
+    },
+    {
+      question: "Bagaimana cara melakukan pemesanan?",
+      answer: "Anda bisa datang langsung ke toko fisik kami, atau menghubungi tim penjualan kami melalui telepon atau WhatsApp untuk pemesanan grosir. Untuk retail, Anda juga bisa berbelanja melalui platform marketplace kami.",
+    },
+    {
+      question: "Apakah ada layanan pengiriman?",
+      answer: "Ya, kami menyediakan layanan pengiriman untuk area sekitar toko dan untuk pesanan dalam jumlah besar. Silakan hubungi kami untuk informasi lebih lanjut mengenai jangkauan dan biaya pengiriman.",
+    },
+    {
+      question: "Di mana lokasi fisik Toko Muvie?",
+      answer: "Toko kami berlokasi di [Alamat Lengkap Toko Anda di Sini]. Kami buka setiap hari dari jam 07:00 hingga 21:00.",
+    },
+  ]
+};
+
+// Testimonials Data using local import for the avatar
+const testimonials = [
+  {
+    content:
+      "Toko Muvie benar-benar penyelamat bisnis katering saya. Produknya lengkap, harganya sangat bersaing, dan pelayanannya ramah. Pengiriman juga selalu tepat waktu. Sangat direkomendasikan!",
+    author: "Budi Santoso",
+    role: "Pemilik, Budi Katering",
+    avatarSrc: testimonialAvatar,
+  },
+];
+
+---
+
+<MainLayout>
+  <AnnouncementBanner
+    btnId="dismiss-button"
+    btnTitle="Cek Promo Terbaru di Tokopedia!"
+    url="#"
+  />
+
+  <HeroSection
+    title=`Lengkapi Kebutuhan Pokok Anda di <span
+        class="text-yellow-500 dark:text-yellow-400">Toko Muvie</span>`
+    subTitle="Pusat grosir dan retail sembako terlengkap dengan harga terbaik. Melayani kebutuhan rumah tangga dan usaha Anda dengan sepenuh hati."
+    primaryBtn="Lihat Produk Kami"
+    primaryBtnURL="/produk"
+    secondaryBtn="Hubungi Tim Penjualan"
+    secondaryBtnURL="/kontak"
+    withReview={true}
+    avatars={avatarSrcs}
+    rating=`<span class="font-bold">4.9</span> / 5`
+    starCount={5}
+    reviews=`Dari <span class="font-bold">5.2k+</span> Ulasan Pelanggan`
+    src={heroImage}
+    alt="Troli belanja yang penuh dengan berbagai produk sembako segar"
+  />
+
+  <ClientsSection
+    title="Dipercaya oleh Ratusan Usaha"
+    subTitle="Kami bangga menjadi pemasok utama bagi berbagai usaha kuliner dan toko di sekitar kita."
+    partners={partnersData}
+  />
+
+  <FeaturesGeneral
+    title="Kualitas Terjamin, Harga Bersaing"
+    subTitle="Di Toko Muvie, kami berkomitmen untuk menyediakan produk sembako berkualitas tinggi dengan harga yang bersaing. Kami melakukan seleksi ketat untuk memastikan hanya produk terbaik yang sampai ke tangan Anda, baik untuk konsumsi harian maupun untuk menunjang bisnis Anda."
+    src={featureImage}
+    alt="Berbagai macam produk sembako seperti beras, minyak, dan telur"
+    features={features}
+  />
+
+  <FeaturesNavs
+    title=`Solusi Tepat untuk Semua Kebutuhan Anda di <span class="text-yellow-500 dark:text-yellow-400">Toko Muvie</span>.`
+    tabs={[
+      {
+        heading: "Pasokan Usaha Kuliner",
+        content:
+          "Kami adalah mitra andal untuk pasokan bahan pokok berkualitas bagi restoran, kafe, dan katering. Dapatkan harga grosir spesial untuk menjaga kualitas rasa dan kelancaran bisnis Anda.",
+        svg: "tools",
+        src: pasokanUsahaImage,
+        alt: "Rak-rak toko yang penuh dengan pasokan sembako untuk bisnis",
+        first: true,
+      },
+      {
+        heading: "Kebutuhan Pokok Harian",
+        content:
+          "Belanja kebutuhan pokok harian kini lebih mudah dan hemat. Kami menyediakan beragam produk dalam kemasan retail yang praktis untuk memenuhi kebutuhan dapur keluarga Anda setiap hari.",
+        svg: "dashboard",
+        src: kebutuhanHarianImage,
+        alt: "Seorang pelanggan memilih produk sembako dari rak toko",
+        second: true,
+      },
+      {
+        heading: "Stok Warung & Toko",
+        content:
+          "Lengkapi stok warung atau toko kelontong Anda dengan produk-produk paling laris dari kami. Nikmati kemudahan sistem pembelian dan pengiriman yang andal untuk mendukung pertumbuhan usaha Anda.",
+        svg: "house",
+        src: stokWarungImage,
+        alt: "Tumpukan karung beras dan produk lain yang siap didistribusikan ke warung",
+      },
+    ]}
+  />
+
+  <TestimonialsSection
+    title="Apa Kata Pelanggan Setia Kami"
+    subTitle="Kepuasan Anda adalah prioritas utama. Kami senang bisa menjadi bagian dari kesuksesan usaha dan kebahagiaan keluarga."
+    testimonials={testimonials}
+    statistics={[
+      {
+        count: "500+",
+        description:
+          "rekanan usaha setia (restoran, warung, katering)",
+      },
+      {
+        count: "1000+",
+        description:
+          "jenis produk sembako tersedia untuk Anda pilih",
+      },
+      {
+        count: "10.000+",
+        description:
+          "pelanggan retail yang berbelanja setiap bulannya",
+      },
+      {
+        count: "24 Jam",
+        description: "layanan pesan antar untuk area terdekat",
+      },
+    ]}
+  />
+
+  <PricingSection pricing={pricing} />
+
+  <FAQ title="Pertanyaan<br />yang Sering Diajukan" faqs={faqs} />
+
+  <HeroSectionAlt
+    title="Siap Memenuhi Kebutuhan Anda!"
+    subTitle="Toko Muvie adalah mitra terpercaya untuk semua kebutuhan sembako Anda. Hubungi kami untuk penawaran grosir atau kunjungi toko kami untuk pengalaman belanja yang memuaskan."
+    url="/kontak"
+  />
+</MainLayout>

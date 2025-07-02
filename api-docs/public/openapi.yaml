@@ -1,0 +1,307 @@
+openapi: "3.0.2"
+
+info:
+  title: Template API Documentation
+  description: Manage API endpoints.
+  version: 0.0.1
+
+servers:
+  - url: http://localhost:3000
+
+paths:
+  /customer:
+    # endpoint GET /customer
+    get:
+      tags:
+        - Customer
+      responses:
+        200:
+          content:
+    # endpoint POST /customer
+    post:
+      tags:
+        - Customer
+      requestBody:
+        content:
+          application/json:
+            example:
+              name: "oskhar"
+      responses:
+        200:
+          content:
+
+  /customer/{id}:
+    # endpoint GET /customer/{id}
+    get:
+      tags:
+        - Customer
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+      responses:
+        200:
+          content:
+    put:
+      tags:
+        - Customer
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                judul:
+                  type: string
+                  example: "Domain-Driven Design: Tackling Complexity in the Heart of Software"
+                penulis:
+                  type: string
+                  example: "Eric Evans"
+      responses:
+        200:
+          content:
+    delete:
+      tags:
+        - Customer
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+
+
+  /top-up-balance:
+    # endpoint GET /top-up-balance
+    get:
+      tags:
+        - top-up-balance
+      responses:
+        200:
+          content:
+    # endpoint POST /top-up-balance
+    post:
+      tags:
+        - top-up-balance
+      requestBody:
+        content:
+          application/json:
+            example:
+              customer_id: [1]
+              nominal: 100000
+      responses:
+        200:
+          content:
+
+  /top-up-balance/{id}:
+    # endpoint GET /top-up-balance/{id}
+    get:
+      tags:
+        - top-up-balance
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+      responses:
+        200:
+          content:
+    delete:
+      tags:
+        - top-up-balance
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+
+
+  /item:
+    # endpoint GET /item
+    get:
+      tags:
+        - item
+      responses:
+        200:
+          content:
+    # endpoint POST /item
+    post:
+      tags:
+        - item
+      requestBody:
+        content:
+          application/json:
+            example:
+              name: "Bakso"
+              price: 8000
+              description: "Komposisi makanan"
+      responses:
+        200:
+          content:
+
+  /item/{id}:
+    # endpoint GET /item/{id}
+    get:
+      tags:
+        - item
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+      responses:
+        200:
+          content:
+    delete:
+      tags:
+        - item
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+
+
+  /stock:
+    # endpoint GET /stock
+    get:
+      tags:
+        - stock
+      responses:
+        200:
+          content:
+    # endpoint POST /stock
+    post:
+      tags:
+        - stock
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                transaction_number:
+                  type: string
+                  default: "auto"
+                  example: "auto"
+                type:
+                  type: string
+                  example: "stock_in"
+                description:
+                  type: string
+                  nullable: true
+                  example: "Barang dari agen"
+                stock_items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      item_id:
+                        type: number
+                        example: 1
+                      quantity:
+                        type: number
+                        example: 8
+              required:
+                - stock_items
+      responses:
+        200:
+          content:
+
+  /stock/{id}:
+    # endpoint GET /stock/{id}
+    get:
+      tags:
+        - stock
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+      responses:
+        200:
+          content:
+    delete:
+      tags:
+        - stock
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+
+
+  /transaction:
+    # endpoint GET /transaction
+    get:
+      tags:
+        - transaction
+      responses:
+        200:
+          content:
+    # endpoint POST /transaction
+    post:
+      tags:
+        - transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                transaction_number:
+                  type: string
+                  default: "auto"
+                  example: "auto"
+                type:
+                  type: string
+                  example: "transaction_in"
+                description:
+                  type: string
+                  nullable: true
+                  example: "Barang dari agen"
+                transaction_items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      item_id:
+                        type: number
+                        example: 1
+                      quantity:
+                        type: number
+                        example: 8
+              required:
+                - transaction_items
+      responses:
+        200:
+          content:
+
+  /transaction/{id}:
+    # endpoint GET /transaction/{id}
+    get:
+      tags:
+        - transaction
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+      responses:
+        200:
+          content:
+    delete:
+      tags:
+        - transaction
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer

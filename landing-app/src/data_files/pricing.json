@@ -1,0 +1,39 @@
+{
+  "title": "Melayani Instalasi CCTV",
+  "subTitle": "Optimalkan keamanan Anda dengan paket instalasi CCTV dari Toko Muvie — dirancang untuk berbagai skala kebutuhan.",
+  "badge": "Best value",
+  "thirdOption": "Solutions Industri?",
+  "btnText": "Dapatkan Kustomisasi",
+
+  "starterKit": {
+    "name": "Paket Instalasi Rumah",
+    "description": "Pilihan terbaik untuk rumah, ruko kecil, dan usaha mikro",
+    "price": "Rp 1.500.000 ",
+    "cents": ".-",
+    "billingFrequency": "/ paket",
+    "features": [
+      "2–4 kamera CCTV (HD/Full HD)",
+      "Instalasi standar (termasuk kabel & DVR)",
+      "Garansi perangkat 1 tahun"
+    ],
+    "purchaseBtnTitle": "Pesan Sekarang",
+    "purchaseLink": "https://wa.me/6282258299859"
+  },
+
+  "professionalToolbox": {
+    "name": "Paket Instalasi Perusahaan",
+    "description": "Pilihan unggulan untuk skala besar & area kritikal",
+    "price": "Rp 10.000.000",
+    "cents": ".-",
+    "billingFrequency": "/ paket",
+    "features": [
+      "16-30 kamera CCTV (HD/Full HD)",
+      "Desain sistem & instalasi profesional",
+      "Support cloud & integrasi NVR/Digifort",
+      "Konsultasi & maintenance berkala",
+      "Diskon pembelian dalam jumlah besar"
+    ],
+    "purchaseBtnTitle": "Pesan Sekarang",
+    "purchaseLink": "https://wa.me/6282258299859"
+  }
+}

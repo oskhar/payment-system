@@ -1,0 +1,45 @@
+---
+const { name, price, image, description, channel, link } = Astro.props;
+const whatsappUrl = `https://wa.me/6282258299859?text=${encodeURIComponent(`Halo, saya ingin membeli produk: ${name}`)}`;
+---
+<div class="flex flex-col h-full rounded-xl shadow-md p-4 bg-neutral-100 dark:bg-white/[.075] hover:shadow-lg transition">
+  <!-- Gambar -->
+  <img src={image} alt={name} class="w-full h-48 object-cover rounded-md mb-3" />
+
+  <!-- Judul dan Channel -->
+  <div class="flex justify-between items-center mb-2">
+    <h2 class="text-lg font-semibold">{name}</h2>
+    <span class="bg-yellow-300 text-yellow-900 text-xs font-semibold px-2 py-1 rounded">
+      {channel} channel
+    </span>
+  </div>
+
+  <!-- Deskripsi -->
+  <p class="text-sm text-gray-500 dark:text-neutral-400 mb-2 flex-grow">
+    {description}
+  </p>
+
+  <!-- Harga -->
+  <span class="font-bold text-blue-600 text-lg mb-3">
+    {price}
+  </span>
+
+  <!-- Tombol: 50%-50% -->
+  <div class="flex gap-2">
+    <a
+      href={whatsappUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="w-1/2 bg-orange-400 hover:bg-orange-600 text-white px-4 py-2 rounded-md text-sm text-center"
+    >
+      Beli Sekarang
+    </a>
+    <a
+      href={link}
+      rel="noopener noreferrer"
+      class="w-1/2 bg-gray-400 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm text-center"
+    >
+      Detail
+    </a>
+  </div>
+</div>

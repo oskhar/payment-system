@@ -1,0 +1,165 @@
+---
+// Importing necessary components
+import MainLayout from "@/layouts/MainLayout.astro";
+import PrimaryCTA from "@components/ui/buttons/PrimaryCTA.astro";
+import CardSmall from "@components/ui/cards/CardSmall.astro";
+import CardWide from "@components/ui/cards/CardWide.astro";
+import FeaturesStatsAlt from "@components/sections/features/FeaturesStatsAlt.astro";
+import TestimonialsSectionAlt from "@components/sections/testimonials/TestimonialsSectionAlt.astro";
+
+// Importing necessary functions from Astro
+import { getCollection } from "astro:content";
+import type { CollectionEntry } from "astro:content";
+import { SITE } from "@data/constants";
+import ProductCard from "@components/sections/pricing/ProductCard.astro";
+import ClientsSection from "@components/sections/landing/ClientsSection.astro";
+import { brandData } from "@/data_files/constants";
+
+// Fetching all the product related content and sorting it by main.id
+const product: CollectionEntry<"products">[] = (
+  await getCollection("products", ({ id }) => {
+    return id.startsWith("en/");
+  })
+).sort(
+  (a: CollectionEntry<"products">, b: CollectionEntry<"products">) =>
+    a.data.main.id - b.data.main.id,
+);
+
+const products = [
+  {
+    name: "Solusi Pengawasan Dasar",
+    price: "Rp 3.180.000",
+    image: "/images/hikvision-2-channel.png",
+    description:
+      "Solusi ideal untuk pengawasan area kecil dengan kualitas Full HD 2MP.",
+    channel: 2,
+    link: "/products/2-channel",
+  },
+  {
+    name: "Pengawasan Lengkap dengan Audio",
+    price: "Rp 7.820.000",
+    image: "/images/hikvision-8-channel.png",
+    description:
+      "Sistem pengawasan lengkap dengan fitur audio untuk area yang lebih luas.",
+    channel: 8,
+    link: "/products/8-channel",
+  },
+  {
+    name: "Standard Full HD Surveillance",
+    price: "Rp4.080.000",
+    image: "/images/hikvision-4-channel.png",
+    description:
+      "Solusi pengawasan menengah dengan kualitas Full HD dan kapasitas penyimpanan memadai.",
+    channel: 4,
+    link: "/products/4-channel",
+  },
+  {
+    name: "Pengawasan dengan Teknologi ColorVu",
+    price: "Rp 8.110.000",
+    image: "/images/hikvision-6-channel.png",
+    description:
+      "Sistem pengawasan dengan teknologi ColorVu untuk rekaman warna jernih di malam hari.",
+    channel: 6,
+    link: "/products/6-channel",
+  },
+];
+
+// Define variables for page content
+const title: string = "Products";
+const subTitle: string =
+  "Explore the durability and precision of Ghina Multiprima tools, designed for both professionals and enthusiasts. Each of our products is crafted with precision and built to last, ensuring you have the right tool for every job.";
+
+// Testimonial data that will be rendered in the component
+const testimonials = [
+  // First testimonial data
+  {
+    content:
+      " \"Since switching to Ghina Multiprima's hardware tools, the efficiency on our construction sites has skyrocketed. The durability of the hex bolts and precision of the machine screws are simply unmatched. It's refreshing to work with a company that truly understands the daily demands of the industry.\" ",
+    author: "Jason Clark",
+    role: "Site Foreman | TopBuild",
+    avatarSrc:
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=facearea&facepad=2&w=320&h=320&q=80",
+    avatarAlt: "Image Description",
+  },
+  // Second testimonial data
+  {
+    content:
+      " \"As an interior designer, I'm always looking for high-quality materials and tools that help bring my visions to life. Ghina Multiprima's mixed screws assortment has been a game-changer for my projects, providing the perfect blend of quality and variety. The outstanding customer support was just the cherry on top!\" ",
+    author: "Maria Gonzalez",
+    role: "Interior Designer | Creative Spaces",
+    avatarSrc:
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1376&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D8&auto=format&fit=facearea&facepad=2&w=320&h=320&q=80",
+    avatarAlt: "Image Description",
+  },
+  // Third testimonial data
+  {
+    content:
+      " \"I've been a professional carpenter for over 15 years, and I can sincerely say that Ghina Multiprima's tap bolts and nuts are some of the best I've used. They grip like no other, and I have full confidence in every joint and fixture. Plus, the service is impeccable – they truly care about my project's success.\" ",
+    author: "Richard Kim",
+    role: "Master Carpenter | WoodWright",
+    avatarSrc:
+      "https://images.unsplash.com/photo-1474176857210-7287d38d27c6?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D8&auto=format&fit=facearea&facepad=2&w=320&h=320&q=80",
+    avatarAlt: "Image Description",
+  },
+];
+
+const pageTitle: string = `Products | ${SITE.title}`;
+const metaDescription =
+  "Explore the durability and precision of Ghina Multiprima tools, designed for both professionals and enthusiasts.";
+const ogTitle = "Hardware Tools | Ghina Multiprima";
+---
+
+<MainLayout
+  title={pageTitle}
+  customDescription={metaDescription}
+  customOgTitle={ogTitle}
+  structuredData={{
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": "https://screwfast.uk/products",
+    url: "https://screwfast.uk/products",
+    name: "Hardware Tools | Ghina Multiprima",
+    description:
+      "Explore the durability and precision of Ghina Multiprima tools, designed for both professionals and enthusiasts.",
+    isPartOf: {
+      "@type": "WebSite",
+      url: "https://screwfast.uk",
+      name: "Ghina Multiprima",
+      description:
+        "Ghina Multiprima offers top-tier hardware tools and expert construction services to meet all your project needs.",
+    },
+    inLanguage: "en-US",
+  }}
+>
+  {/* Features statistics section */}
+  <FeaturesStatsAlt
+    title="Kenapa Pilih Ghina Multiprima?"
+    subTitle="Wujudkan sistem keamanan terbaik bersama Toko Muvie. Dari rumah tinggal hingga proyek industri berskala besar, solusi kami dirancang untuk memberikan pengawasan yang andal dan profesional."
+    benefits={[
+      "Perangkat CCTV berkualitas tinggi dengan performa tahan lama.",
+      "Solusi keamanan cerdas yang disesuaikan dengan kebutuhan modern.",
+      "Dukungan teknis profesional untuk setiap tahap proyek Anda.",
+    ]}
+  />
+  {/* Testimonials section */}
+  <ClientsSection
+    title="Brand Produk"
+    subTitle="Berikut adalah beberapa brand yang tersedia"
+    partners={brandData}
+  />
+  {/* Testimonials section */}
+  <div class="mb-20 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    {
+      products.map((product) => (
+          <ProductCard
+            name={product.name}
+            price={product.price}
+            image={product.image}
+            description={product.description}
+            channel={product.channel}
+            link={product.link}
+          />
+      ))
+    }
+  </div></MainLayout
+>
