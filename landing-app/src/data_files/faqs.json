@@ -1,29 +1,29 @@
 {
-  "subTitle": "Tanyakan apa saja tentang layanan, produk, dan solusi keamanan dari Toko Muvie. Kami siap memberikan jawaban faktual dan akurat.",
+  "subTitle": "Tanyakan apa saja tentang layanan, produk, dan penawaran dari Toko Muvie. Kami siap memberikan jawaban untuk semua kebutuhan Anda.",
   "faqs": [
     {
-      "question": "Apa saja yang termasuk dalam Paket CCTV Rumah?",
-      "answer": "Paket ini mencakup 2–4 kamera CCTV (HD/Full HD), DVR, kabel instalasi, dan layanan pemasangan standar. Cocok untuk rumah, toko, atau ruko yang membutuhkan sistem pengawasan efektif dengan harga terjangkau."
+      "question": "Apa perbedaan utama antara belanja retail dan grosir di Toko Muvie?",
+      "answer": "Belanja retail ditujukan untuk kebutuhan harian rumah tangga dengan pembelian satuan. Sementara itu, belanja grosir ditujukan untuk kebutuhan usaha (warung, restoran, katering) dengan harga spesial untuk pembelian dalam jumlah besar atau kartonan."
     },
     {
-      "question": "Bisakah saya upgrade dari paket rumah ke paket industri?",
-      "answer": "Tentu saja! Anda dapat meningkatkan ke Paket CCTV Industri kapan saja untuk mendapatkan kamera dengan fitur AI, sistem NVR, dan dukungan teknis prioritas. Hubungi tim kami untuk proses upgrade yang mudah dan cepat."
+      "question": "Apakah Toko Muvie menyediakan layanan pengiriman?",
+      "answer": "Ya, kami menyediakan layanan pengiriman. Untuk pembelian dalam jumlah tertentu atau untuk pelanggan grosir di area terdekat, kami menawarkan pengiriman gratis. Silakan hubungi kami untuk informasi lebih lanjut mengenai jangkauan dan ketentuan layanan."
     },
     {
-      "question": "Apakah tersedia diskon untuk instalasi dalam jumlah besar?",
-      "answer": "Ya, kami memberikan harga khusus untuk proyek skala besar, seperti perumahan, gedung perkantoran, atau kawasan industri. Hubungi tim sales kami untuk mendapatkan penawaran dan struktur harga yang disesuaikan."
+      "question": "Apakah ada diskon khusus untuk pembelian dalam jumlah besar?",
+      "answer": "Tentu saja. Kami memberikan harga grosir yang sangat kompetitif untuk pembelian dalam jumlah besar. Semakin banyak jumlah pembelian Anda, semakin baik harga yang bisa kami tawarkan. Hubungi tim penjualan kami untuk mendapatkan daftar harga grosir."
     },
     {
-      "question": "Jenis layanan purna jual apa yang tersedia?",
-      "answer": "Semua pelanggan mendapatkan layanan dukungan teknis via email dan WhatsApp. Untuk paket industri, Anda juga mendapatkan respon prioritas, kunjungan teknisi berkala, dan opsi perawatan lanjutan (maintenance service)."
+      "question": "Bagaimana jika produk yang saya cari tidak tersedia?",
+      "answer": "Kami selalu berusaha menjaga kelengkapan stok. Namun, jika produk yang Anda cari sedang kosong atau Anda membutuhkan produk spesifik di luar stok reguler, Anda bisa melakukan pemesanan khusus (pre-order) kepada tim kami."
     },
     {
-      "question": "Seberapa sering materi panduan dan dokumentasi diperbarui?",
-      "answer": "Kami secara rutin memperbarui panduan instalasi, troubleshooting, dan tutorial penggunaan sistem untuk memastikan semua informasi mengikuti teknologi terbaru dari brand seperti Hikvision, Uniview, dan Digifort."
+      "question": "Metode pembayaran apa saja yang diterima?",
+      "answer": "Kami menerima berbagai metode pembayaran, termasuk tunai, transfer bank, kartu debit, dan pembayaran melalui QRIS untuk kemudahan dan kenyamanan transaksi Anda."
     },
     {
-      "question": "Apakah Toko Muvie melayani proyek pengamanan berskala besar?",
-      "answer": "Ya, kami melayani berbagai proyek pengamanan untuk area komersial, industri, hingga kawasan terpadu. Layanan kami mencakup konsultasi desain sistem, instalasi profesional, serta integrasi teknologi pemantauan modern. Hubungi kami untuk penawaran khusus."
+      "question": "Apakah Toko Muvie bisa menjadi pemasok rutin untuk usaha saya?",
+      "answer": "Ya, kami sangat senang bisa menjadi mitra dan pemasok rutin untuk usaha Anda, baik itu restoran, warung, kafe, maupun katering. Kami menawarkan jadwal pengiriman yang fleksibel dan sistem pembayaran yang mudah untuk mendukung kelancaran bisnis Anda."
     }
   ]
 }

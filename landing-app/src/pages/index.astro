@@ -23,103 +23,20 @@ import avatar2 from "@/assets/images/avatars/avatar2.jpg";
 import avatar3 from "@/assets/images/avatars/avatar3.jpg";
 import avatar4 from "@/assets/images/avatars/avatar4.jpg";
 import testimonialAvatar from "@/assets/images/avatars/testimonial-avatar.jpg";
+import { partnersData } from "@/data_files/constants";
+import faqs from "@data/faqs.json";
+import features from "@data/features.json";
+import pricing from "@data/pricing.json";
 
 // --- Data Definitions ---
 
 // Avatars for Hero Section using local imports
-const avatarSrcs = [avatar1, avatar2, avatar3, avatar4];
-
-// Partner logos (example) - These can also be imported locally if desired.
-const partnersData = [
-    { src: "https://placehold.co/158x48/ffffff/cbd5e1?text=Resto+Jaya", alt: "Logo Resto Jaya" },
-    { src: "https://placehold.co/158x48/ffffff/cbd5e1?text=Warung+Bu+Ani", alt: "Logo Warung Bu Ani" },
-    { src: "https://placehold.co/158x48/ffffff/cbd5e1?text=Katering+Lezat", alt: "Logo Katering Lezat" },
-    { src: "https://placehold.co/158x48/ffffff/cbd5e1?text=Cafe+Senja", alt: "Logo Cafe Senja" },
-    { src: "https://placehold.co/158x48/ffffff/cbd5e1?text=Toko+Sahabat", alt: "Logo Toko Sahabat" },
+const avatarSrcs: Array<string> = [
+  "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80",
+  "https://images.unsplash.com/photo-1531927557220-a9e23c1e4794?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80",
+  "https://images.unsplash.com/photo-1541101767792-f9b2b1c4f127?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&&auto=format&fit=facearea&facepad=3&w=300&h=300&q=80",
+  "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80",
 ];
-
-// Features data
-const features = [
-  {
-    icon: "ph:shopping-cart-bold",
-    title: "Produk Terlengkap",
-    description: "Dari beras, minyak, gula, hingga bumbu dapur, kami menyediakan semua kebutuhan pokok Anda dalam satu tempat.",
-  },
-  {
-    icon: "ph:tag-bold",
-    title: "Harga Kompetitif",
-    description: "Nikmati harga grosir terbaik untuk pembelian dalam jumlah besar dan harga retail yang terjangkau untuk kebutuhan harian.",
-  },
-  {
-    icon: "ph:truck-bold",
-    title: "Pengiriman Cepat",
-    description: "Kami menyediakan layanan pengiriman yang cepat dan andal untuk memastikan pesanan Anda tiba tepat waktu.",
-  },
-];
-
-// Pricing data
-const pricing = {
-  title: "Pilihan Paket Sesuai Kebutuhan Anda",
-  subTitle: "Kami menawarkan harga yang fleksibel baik untuk kebutuhan retail maupun grosir.",
-  badge: "Paling Populer",
-  thirdOption: "Butuh penawaran untuk partai besar?",
-  btnText: "Hubungi Kami",
-  starterKit: {
-      name: "Paket Retail",
-      description: "Untuk kebutuhan harian Anda.",
-      price: "Mulai 10rb",
-      cents: "",
-      billingFrequency: "/ item",
-      features: ["Belanja satuan", "Tanpa minimum order", "Pilihan produk lengkap"],
-      purchaseBtnTitle: "Mulai Belanja",
-      purchaseLink: "/produk",
-  },
-  professionalToolbox: {
-      name: "Paket Usaha",
-      description: "Untuk warung, toko, dan semi-grosir.",
-      price: "Harga Spesial",
-      cents: "",
-      billingFrequency: "untuk mitra",
-      features: ["Pembelian semi-grosir", "Stok produk terlaris", "Dukungan penjualan", "Prioritas stok"],
-      purchaseBtnTitle: "Jadi Mitra",
-      purchaseLink: "/kontak",
-  },
-};
-
-// FAQ data
-const faqs = {
-  subTitle: "Temukan jawaban untuk pertanyaan umum tentang layanan dan produk kami.",
-  faqs: [
-    {
-      question: "Apakah Toko Muvie melayani pembelian grosir?",
-      answer: "Tentu saja. Kami adalah pusat grosir sembako yang melayani berbagai jenis usaha seperti restoran, katering, warung, dan toko kelontong dengan harga yang sangat kompetitif.",
-    },
-    {
-      question: "Bagaimana cara melakukan pemesanan?",
-      answer: "Anda bisa datang langsung ke toko fisik kami, atau menghubungi tim penjualan kami melalui telepon atau WhatsApp untuk pemesanan grosir. Untuk retail, Anda juga bisa berbelanja melalui platform marketplace kami.",
-    },
-    {
-      question: "Apakah ada layanan pengiriman?",
-      answer: "Ya, kami menyediakan layanan pengiriman untuk area sekitar toko dan untuk pesanan dalam jumlah besar. Silakan hubungi kami untuk informasi lebih lanjut mengenai jangkauan dan biaya pengiriman.",
-    },
-    {
-      question: "Di mana lokasi fisik Toko Muvie?",
-      answer: "Toko kami berlokasi di [Alamat Lengkap Toko Anda di Sini]. Kami buka setiap hari dari jam 07:00 hingga 21:00.",
-    },
-  ]
-};
-
-// Testimonials Data using local import for the avatar
-const testimonials = [
-  {
-    content:
-      "Toko Muvie benar-benar penyelamat bisnis katering saya. Produknya lengkap, harganya sangat bersaing, dan pelayanannya ramah. Pengiriman juga selalu tepat waktu. Sangat direkomendasikan!",
-    author: "Budi Santoso",
-    role: "Pemilik, Budi Katering",
-    avatarSrc: testimonialAvatar,
-  },
-];
-
 ---
 
 <MainLayout>
@@ -147,7 +64,7 @@ const testimonials = [
   />
 
   <ClientsSection
-    title="Dipercaya oleh Ratusan Usaha"
+    title="Dipercaya oleh Banyak Customer"
     subTitle="Kami bangga menjadi pemasok utama bagi berbagai usaha kuliner dan toko di sekitar kita."
     partners={partnersData}
   />
@@ -195,7 +112,6 @@ const testimonials = [
   <TestimonialsSection
     title="Apa Kata Pelanggan Setia Kami"
     subTitle="Kepuasan Anda adalah prioritas utama. Kami senang bisa menjadi bagian dari kesuksesan usaha dan kebahagiaan keluarga."
-    testimonials={testimonials}
     statistics={[
       {
         count: "500+",
