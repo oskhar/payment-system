@@ -94,35 +94,96 @@ const appleTouchIcon = await getImage({
 }
 {/* Define the character set, description, author, and viewport settings */}
 <meta charset="utf-8" />
-<meta content={description} name="description" />
-<meta name="web_author" content={author} />
+<meta name="web_author" content="SAM TEKNOLOGI" />
 <meta
   name="viewport"
   content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0"
 />
-<meta http-equiv="X-UA-Compatible" content="ie=edge" />
-<link rel="canonical" href={canonical} />
-<Fragment set:html={alternateLanguageLinks} />
 
-{/* Facebook Meta Tags */}
-<meta property="og:locale" content="en_US" />
-<meta property="og:url" content={URL} />
-<meta property="og:type" content="website" />
-<meta property="og:title" content={ogTitle} />
-<meta property="og:site_name" content={SITE.title} />
-<meta property="og:description" content={ogDescription} />
-<meta property="og:image" content={socialImage} />
-<meta content="1200" property="og:image:width" />
-<meta content="600" property="og:image:height" />
-<meta content="image/png" property="og:image:type" />
+<!-- Deskripsi Singkat Halaman (Untuk mesin pencari seperti Google) -->
+<meta
+  name="description"
+  content="Temukan semua kebutuhan pokok untuk rumah tangga dan usaha Anda di Toko Muvie. Harga terbaik, pelayanan ramah, dan pengiriman cepat."
+/>
 
-{/* Twitter Meta Tags */}
-<meta name="twitter:card" content="summary_large_image" />
-<meta property="twitter:domain" content={URL} />
-<meta property="twitter:url" content={URL} />
-<meta name="twitter:title" content={ogTitle} />
-<meta name="twitter:description" content={ogDescription} />
-<meta name="twitter:image" content={socialImage} />
+<!-- Karakter Set dan Viewport (Standar untuk semua website) -->
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+/>
+
+<!-- =================================================================== -->
+<!-- META TAG UNTUK WHATSAPP, FACEBOOK, DAN MEDIA SOSIAL (OPEN GRAPH) -->
+<!-- =================================================================== -->
+
+<!-- Ganti dengan nama toko Anda -->
+<meta
+  property="og:site_name"
+  content="Toko Muvie"
+/>
+
+<!-- Judul yang akan tampil di pratinjau WhatsApp -->
+<meta
+  property="og:title"
+  content="Toko Muvie: Grosir & Retail Sembako Terlengkap"
+/>
+
+<!-- Deskripsi yang akan tampil di pratinjau WhatsApp -->
+<meta
+  property="og:description"
+  content="Harga terbaik untuk kebutuhan rumah tangga dan usaha Anda. Klik untuk lihat promo!"
+/>
+
+<!-- URL LENGKAP ke gambar pratinjau Anda. 
+  Pastikan gambar ini sudah diunggah ke website Anda dan dapat diakses publik.
+  Ukuran ideal: 1200x630 piksel. -->
+<meta
+  property="og:image"
+  content="https://pos-muvie.vercel.app/logo-toko.png"
+/>
+
+<!-- Dimensi gambar (Penting untuk tampilan yang konsisten) -->
+<meta
+  property="og:image:width"
+  content="1200"
+/>
+<meta
+  property="og:image:height"
+  content="630"
+/>
+
+<!-- Tipe konten, untuk halaman utama gunakan "website" -->
+<meta
+  property="og:type"
+  content="website"
+/>
+
+<!-- URL LENGKAP halaman yang dibagikan -->
+<meta
+  property="og:url"
+  content="https://pos-muvie.vercel.app/logo-toko.png"
+/>
+
+<!-- =================================================================== -->
+<!-- META TAG TAMBAHAN UNTUK TWITTER (PRAKTIK TERBAIK) -->
+<!-- =================================================================== -->
+
+<meta
+  name="twitter:card"
+  content="summary_large_image"
+/>
+<meta
+  name="twitter:title"
+  content="Toko Muvie: Grosir & Retail Sembako Terlengkap"
+/>
+<meta
+  name="twitter:description"
+  content="Harga terbaik untuk kebutuhan rumah tangga dan usaha Anda. Klik untuk lihat promo!"
+/>
+<meta
+  name="twitter:image"
+  content="https://pos-muvie.vercel.app/logo-toko.png"
+/>
 
 {/* Links to the webmanifest and sitemap */}
 <link rel="manifest" href="/manifest.json" />
