@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import * as fs from 'fs';
-import * as path from 'path';
+// import * as fs from 'fs';
+// import * as path from 'path';
 
 @Module({
   imports: [
@@ -10,10 +10,10 @@ import * as path from 'path';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const caPath = path.join(__dirname, '../../..', 'certs', 'ca.pem');
-        const sslOptions = {
-          ca: fs.readFileSync(caPath),
-        };
+        // const caPath = path.join(__dirname, '../../..', 'certs', 'ca.pem');
+        // const sslOptions = {
+        //   ca: fs.readFileSync(caPath),
+        // };
 
         return {
           type: 'mysql',
