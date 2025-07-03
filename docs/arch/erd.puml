@@ -1,106 +1,210 @@
 @startuml
 !theme mars
 
-entity categories {
+' -- Penjelasan Perubahan Best Practice --
+' 1. ITEMS memiliki "base_unit_id" sebagai satuan dasar wajib untuk kalkulasi stok.
+' 2. ITEM_UNITS (menggantikan item_prices) adalah tabel pusat yang menyimpan harga JUAL/BELI per unit DAN faktor konversi ke satuan dasar.
+' 3. STOCK_LEDGER adalah buku besar (wajib audit) yang mencatat SEMUA pergerakan stok dalam SATUAN DASAR.
+' 4. ITEM_STOCK_SUMMARY adalah tabel ringkasan untuk performa query stok yang sangat cepat.
+' 5. Penambahan struktur PURCHASE (Pemesanan Pembelian) untuk melengkapi alur masuk barang secara profesional.
+' --
+
+' ===================================
+' ====== CORE PRODUCT & UNITS =======
+' ===================================
+entity "categories" as cat {
   id : integer <<PK>>
-  created_at : datetime
   name : varchar
+  --
+  created_at : datetime
+  updated_at : datetime
 }
 
-entity items {
+entity "items" as i {
   id : integer <<PK>>
-  created_at : datetime
   name : varchar
   barcode : varchar
-  image_url : varchar
   description : text
+  image_url : varchar
+  **base_unit_id : integer <<FK>>** '-- Wajib: Satuan dasar untuk kalkulasi stok (cth: pcs)
+  --
+  created_at : datetime
+  updated_at : datetime
 }
 
-entity item_category {
-  id : integer <<PK>>
-  item_id : integer <<FK>>
-  category_id : integer <<FK>>
-  created_at : datetime
+entity "item_category" as ic {
+  item_id : integer <<PK>> <<FK>>
+  category_id : integer <<PK>> <<FK>>
 }
 
-entity units {
+entity "units" as u {
   id : integer <<PK>>
-  created_at : datetime
   name : varchar
   abbreviation : varchar
+  --
+  created_at : datetime
+  updated_at : datetime
 }
 
-entity item_prices {
-  id : integer <<PK>>
-  price : decimal
+' Tabel ini adalah JANTUNG dari manajemen unit & harga
+entity "item_units" as iu {
+  id: integer <<PK>>
   item_id : integer <<FK>>
   unit_id : integer <<FK>>
-  min_quantity : integer
+  --
+  **conversion_to_base : decimal** '-- Faktor konversi ke base_unit. Cth: 1 dus = 40 pcs, maka isinya 40. Untuk pcs itu sendiri, isinya 1.
+  price : decimal '-- Harga JUAL untuk unit ini
+  cost : decimal '-- Harga MODAL/BELI untuk unit ini
+  is_for_sale : boolean '-- Apakah unit ini bisa dijual? (cth: Dus)
+  is_for_purchase : boolean '-- Apakah unit ini bisa dibeli? (cth: Pcs mungkin tidak bisa dibeli dari supplier)
 }
 
-entity stock {
-  id : integer <<PK>>
-  created_at : datetime
-  transaction_number : varchar
-  type : varchar
-  description : text
-  quantity : integer
-  item_id : integer <<FK>>
-  branch_id : integer <<FK>>
-  unit_id : integer <<FK>>
-}
 
-entity branches {
+' ===================================
+' ========= INVENTORY (STOK) ========
+' ===================================
+entity "branches" as b {
   id : integer <<PK>>
-  created_at : datetime
   name : varchar
   address : text
   image_url : varchar
+  --
+  created_at : datetime
+  updated_at : datetime
 }
 
-entity users {
+' Best Practice: Tabel ringkasan untuk cek stok cepat
+entity "item_stock_summary" as iss {
+  item_id : integer <<PK>> <<FK>>
+  branch_id : integer <<PK>> <<FK>>
+  --
+  **quantity_in_base_unit : decimal** '-- Stok terkini dalam satuan dasar
+  last_updated_at : datetime
+}
+
+' Best Practice: Buku besar semua transaksi stok (untuk audit)
+entity "stock_ledger" as sl {
   id : integer <<PK>>
+  item_id : integer <<FK>>
+  branch_id : integer <<FK>>
+  --
+  **quantity_change : decimal** '-- Perubahan stok (+/-) SELALU dalam satuan dasar
+  **final_quantity : decimal** '-- Stok akhir setelah transaksi ini (untuk verifikasi)
+  type : varchar '-- SALE, PURCHASE, ADJUSTMENT, RETURN, TRANSFER
+  reference_id : varchar '-- ID dari transaksi, PO, atau form adjustment
+  description : text
+  --
   created_at : datetime
-  password : varchar
-  whatsapp : varchar
+}
+
+' ===================================
+' ======== SALES (PENJUALAN) ========
+' ===================================
+entity "users" as usr {
+  id : integer <<PK>>
+  name : varchar
   email : varchar
+  whatsapp : varchar
+  password_hash : varchar
   role : varchar
+  branch_id: integer <<FK>>
+  --
+  created_at : datetime
+  updated_at : datetime
 }
 
-entity transactions {
+entity "transactions" as t {
   id : integer <<PK>>
-  created_at : datetime
   transaction_number : varchar
-  payment_method : varchar
   user_id : integer <<FK>>
   branch_id : integer <<FK>>
-}
-
-entity transaction_item {
-  transaction_id : integer <<PK>> <<FK>>
-  item_id : integer <<PK>> <<FK>>
+  payment_method : varchar
+  total_amount: decimal
+  --
   created_at : datetime
-  quantity : integer
-  price : decimal
-  unit_id : integer <<FK>>
 }
 
-' Relationships'
-item_category -- categories
-item_category -- items
+entity "transaction_items" as ti {
+  id: integer <<PK>>
+  transaction_id : integer <<FK>>
+  item_id : integer <<FK>>
+  **item_unit_id : integer <<FK>>** '-- FK ke item_units, mencatat unit & harga saat transaksi
+  --
+  quantity : decimal '-- Kuantitas dalam unit yang dijual (cth: 2)
+  price_per_unit : decimal '-- Harga per unit saat transaksi (cth: harga per dus)
+  total_price : decimal
+}
 
-item_prices -- items
-item_prices -- units
+' ===================================
+' ====== PURCHASING (PEMBELIAN) =====
+' ===================================
+entity "suppliers" as sup {
+  id: integer <<PK>>
+  name: varchar
+  contact_person: varchar
+  phone: varchar
+  address: text
+  --
+  created_at: datetime
+  updated_at: datetime
+}
 
-stock -- items
-stock -- branches
-stock -- units
+entity "purchase_orders" as po {
+    id: integer <<PK>>
+    po_number: varchar
+    supplier_id: integer <<FK>>
+    branch_id: integer <<FK>>
+    status: varchar '-- DRAFT, SUBMITTED, COMPLETED, CANCELLED
+    notes: text
+    --
+    created_at: datetime
+    submitted_at: datetime
+    completed_at: datetime
+}
 
-transactions -- branches
-transactions -- users
-transactions -- transaction_item
+entity "purchase_order_items" as poi {
+    id: integer <<PK>>
+    purchase_order_id: integer <<FK>>
+    item_id: integer <<FK>>
+    **item_unit_id : integer <<FK>>** '-- FK ke item_units, mencatat unit & harga beli
+    --
+    quantity: decimal '-- Kuantitas dalam unit yang dibeli
+    cost_per_unit: decimal '-- Harga beli per unit
+    total_cost: decimal
+}
 
-transaction_item -- items
-transaction_item -- units
 
+' ===================================
+' =========== RELATIONSHIPS =========
+' ===================================
+' Product Relationships
+i --{ ic
+cat --{ ic
+i --o{ iu
+u --{ iu
+i --right- u : "has base unit >"
+
+' Inventory Relationships
+i ||--o{ iss
+b ||--o{ iss
+sl }o-- i
+sl }o-- b
+iss -- sl : "updated by >"
+
+' Sales Relationships
+t }o-- usr
+t }o-- b
+t ||--o{ ti
+i --{ ti
+iu --{ ti
+
+' Purchasing Relationships
+sup --o{ po
+po ||--o{ poi
+b --{ po
+i --{ poi
+iu --{ poi
+
+' User-Branch Relationship
+usr }o-- b
 @enduml
