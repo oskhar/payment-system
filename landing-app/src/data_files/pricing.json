@@ -17,7 +17,7 @@
       "Bisa diantar ke rumah"
     ],
     "purchaseBtnTitle": "Belanja Sekarang",
-    "purchaseLink": "/produk"
+    "purchaseLink": "https://wa.me/6281398775451"
   },
 
   "professionalToolbox": {
@@ -34,6 +34,6 @@
       "Dukungan dari tim sales kami"
     ],
     "purchaseBtnTitle": "Hubungi Sales",
-    "purchaseLink": "https://wa.me/6281234567890"
+    "purchaseLink": "https://wa.me/6281398775451"
   }
 }
