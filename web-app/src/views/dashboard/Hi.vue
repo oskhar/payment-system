@@ -13,7 +13,7 @@ import HiCharacter from '@images/avatars/Hi.webp'
       >
         <VCardItem class="pb-3">
           <VCardTitle class="text-primary">
-            Selamat Datang di SAMPOS!
+            Selamat Datang di Toko Muvie PoS!
           </VCardTitle>
         </VCardItem>
 
@@ -53,10 +53,14 @@ import HiCharacter from '@images/avatars/Hi.webp'
   inset-block-end: -0.125rem;
   inset-inline-end: 3.5rem;
 }
+
 .character-image {
-  object-fit: cover !important; /* Pastikan gambar terpotong */
-  object-position: top !important; /* Posisi pemotongan */
-  overflow: hidden !important; /* Hindari overflow */
+  object-fit: cover !important;
+  /* Pastikan gambar terpotong */
+  object-position: top !important;
+  /* Posisi pemotongan */
+  overflow: hidden !important;
+  /* Hindari overflow */
   bottom: -35% !important;
   height: 130% !important;
   min-width: 220px;

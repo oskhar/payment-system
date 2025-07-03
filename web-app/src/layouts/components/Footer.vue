@@ -11,8 +11,9 @@
         size="1.25rem"
         class="mx-1"
       />
-      By <a
-        href="https://www.instagram.com/gdgoc.uinjkt"
+      By
+      <a
+        href="https://samtek.id"
         target="_blank"
         rel="noopener noreferrer"
         class="text-primary ms-1"

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import NavItems from '@/layouts/components/NavItems.vue'
-import logo from '@images/logo.svg?raw'
 import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue'
 
 // Components
@@ -48,10 +47,11 @@ import UserProfile from '@/layouts/components/UserProfile.vue'
         class="app-logo app-title-wrapper"
       >
         <!-- eslint-disable vue/no-v-html -->
-        <div
+        <img
           class="d-flex"
-          v-html="logo"
-        />
+          style="width: 80px; border-radius: 50%"
+          src="/logo-toko.png"
+        >
         <!-- eslint-enable -->
       </RouterLink>
 
@@ -99,6 +99,7 @@ import UserProfile from '@/layouts/components/UserProfile.vue'
     text-transform: uppercase;
   }
 }
+
 .custom-logo-title {
   font-size: 1.3rem !important;
   font-weight: 500 !important;

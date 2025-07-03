@@ -2,7 +2,7 @@
 import { useTheme } from 'vuetify'
 import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
 
-import logo from '@images/logo.svg?raw'
+import logo from '@images/logo-toko.png'
 import authV1MaskDark from '@images/pages/auth-v1-mask-dark.png'
 import authV1MaskLight from '@images/pages/auth-v1-mask-light.png'
 import authV1Tree2 from '@images/pages/auth-v1-tree-2.png'
@@ -17,9 +17,7 @@ const form = ref({
 const vuetifyTheme = useTheme()
 
 const authThemeMask = computed(() => {
-  return vuetifyTheme.global.name.value === 'light'
-    ? authV1MaskLight
-    : authV1MaskDark
+  return vuetifyTheme.global.name.value === 'light' ? authV1MaskLight : authV1MaskDark
 })
 
 const isPasswordVisible = ref(false)
@@ -59,7 +57,7 @@ const isPasswordVisible = ref(false)
       </VCardText>
 
       <VCardText>
-        <VForm @submit.prevent="() => {}">
+        <VForm @submit.prevent="() => { }">
           <VRow>
             <!-- email -->
             <VCol cols="12">
@@ -163,5 +161,5 @@ const isPasswordVisible = ref(false)
 </template>
 
 <style lang="scss">
-@use "@core/scss/template/pages/page-auth";
+@use '@core/scss/template/pages/page-auth';
 </style>

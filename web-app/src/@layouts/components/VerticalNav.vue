@@ -2,7 +2,6 @@
 import type { Component } from 'vue'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import { useDisplay } from 'vuetify'
-import logo from '@images/logo.svg?raw'
 
 interface Props {
   tag?: string | Component
@@ -28,10 +27,11 @@ watch(
   () => route.path,
   () => {
     props.toggleIsOverlayNavActive(false)
-  })
+  },
+)
 
 const isVerticalNavScrolled = ref(false)
-const updateIsVerticalNavScrolled = (val: boolean) => isVerticalNavScrolled.value = val
+const updateIsVerticalNavScrolled = (val: boolean) => (isVerticalNavScrolled.value = val)
 
 const handleNavScroll = (evt: Event) => {
   isVerticalNavScrolled.value = (evt.target as HTMLElement).scrollTop > 0
@@ -60,10 +60,11 @@ const handleNavScroll = (evt: Event) => {
           to="/"
           class="app-logo app-title-wrapper"
         >
-          <div
+          <img
             class="d-flex"
-            v-html="logo"
-          />
+            style="width: 100px; border-radius: 50%"
+            src="/logo-toko.png"
+          >
 
           <h1 class="font-weight-medium leading-normal text-xl text-uppercase">
             Materio
@@ -107,8 +108,8 @@ const handleNavScroll = (evt: Event) => {
 </style>
 
 <style lang="scss">
-@use "@configured-variables" as variables;
-@use "@layouts/styles/mixins";
+@use '@configured-variables' as variables;
+@use '@layouts/styles/mixins';
 
 // 👉 Vertical Nav
 .layout-vertical-nav {
@@ -120,7 +121,9 @@ const handleNavScroll = (evt: Event) => {
   inline-size: variables.$layout-vertical-nav-width;
   inset-block-start: 0;
   inset-inline-start: 0;
-  transition: inline-size 0.25s ease-in-out, box-shadow 0.25s ease-in-out;
+  transition:
+    inline-size 0.25s ease-in-out,
+    box-shadow 0.25s ease-in-out;
   will-change: transform, inline-size;
 
   .nav-header {
@@ -132,6 +135,7 @@ const handleNavScroll = (evt: Event) => {
 
       @at-root {
         #{variables.$selector-vertical-nav-mini} .nav-header .header-action {
+
           &.nav-pin,
           &.nav-unpin {
             display: none !important;
