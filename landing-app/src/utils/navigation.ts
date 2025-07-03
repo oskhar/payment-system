@@ -9,7 +9,6 @@ const footerLinks = [
     section: "Ecosystem",
     links: [
       { name: "Documentation", url: "/welcome-to-docs/" },
-      { name: "CCTV & Security", url: "/products" },
     ],
   },
   {
