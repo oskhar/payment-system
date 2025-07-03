@@ -13,11 +13,11 @@ import AnnouncementBanner from "@components/ui/banners/AnnouncementBanner.astro"
 
 // --- Local Image Imports ---
 // Pastikan path gambar ini sesuai dengan struktur proyek Anda.
-import heroImage from "@/assets/images/sembako-hero.jpg";
+import heroImage from "@/assets/images/hero.jpg";
 import featureImage from "@/assets/images/produk-sembako.jpg";
-import pasokanUsahaImage from "@/assets/images/pasokan-usaha.jpg";
-import kebutuhanHarianImage from "@/assets/images/kebutuhan-harian.jpg";
-import stokWarungImage from "@/assets/images/stok-warung.jpg";
+import pasokanUsahaImage from "@/assets/images/pasokan-usaha.png";
+import kebutuhanHarianImage from "@/assets/images/kebutuhan-harian.png";
+import stokWarungImage from "@/assets/images/stok-warung.png";
 import avatar1 from "@/assets/images/avatars/avatar1.jpg";
 import avatar2 from "@/assets/images/avatars/avatar2.jpg";
 import avatar3 from "@/assets/images/avatars/avatar3.jpg";
@@ -40,12 +40,6 @@ const avatarSrcs: Array<string> = [
 ---
 
 <MainLayout>
-  <AnnouncementBanner
-    btnId="dismiss-button"
-    btnTitle="Cek Promo Terbaru di Tokopedia!"
-    url="#"
-  />
-
   <HeroSection
     title=`Lengkapi Kebutuhan Pokok Anda di <span
         class="text-yellow-500 dark:text-yellow-400">Toko Muvie</span>`

@@ -1,48 +1,55 @@
 ---
-title: ScrewFast Docs
+# --- Informasi Halaman ---
+title: Pusat Informasi Toko Muvie
 head:
   - tag: title
-    content: ScrewFast Docs
-description: Explore ScrewFast's comprehensive documentation for an in-depth look at our premium tools and construction services. 
+    content: Pusat Informasi Toko Muvie
+description: Jelajahi pusat informasi lengkap Toko Muvie untuk panduan belanja, detail produk, dan layanan yang kami tawarkan.
 template: splash
 editUrl: false
 lastUpdated: false
 next: false
+
+# --- Bagian Hero (Tampilan Utama) ---
 hero:
-  title: Documentation Hub
-  tagline: Your central hub for streamlined tool guidance, detailed service docs, and project support.
+  title: Pusat Bantuan & Informasi
+  tagline: Semua yang perlu Anda ketahui tentang produk, layanan, dan cara berbelanja di Toko Muvie ada di sini.
   image:
-      alt: A ScrewFast's Logo
-      dark: ../../images/starlight/screwfast_hero.svg
-      light: ../../images/starlight/screwfast_hero_dark.svg
+    # Ganti dengan path logo atau gambar Toko Muvie Anda
+    alt: Logo Toko Muvie
+    dark: ../../images/logo-toko.png
+    light: ../../images/logo-toko.png
   actions:
-    - text: Get started
+    - text: Cara Mulai Belanja
       icon: right-arrow
       variant: primary
-      link: /guides/getting-started/
-    - text: View on GitHub
+      link: /panduan/cara-belanja/
+    - text: Hubungi Kami
       icon: external
       variant: minimal
-      link: https://github.com/mearashadowfax/ScrewFast
+      link: /contact/ # Arahkan ke halaman kontak Anda
+
+# --- Impor Gaya & Komponen ---
 ---
 import "@styles/starlight_main.css";
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
 <CardGrid stagger>
 
-  <Card title="Quick Start Guides" icon="document">
-    Get up and running swiftly with our straightforward and concise guides, tailored for new users and seasoned experts alike.
+  <Card title="Panduan Belanja" icon="document">
+    Baru pertama kali? Pelajari cara mudah untuk memesan kebutuhan pokok Anda, mulai dari memilih produk hingga pembayaran.
   </Card>
 
-  <Card title="Tools & Equipment" icon="seti:eslint">
-    Discover the complete lineup of ScrewFast's superior quality tools and equipment. Each subsection offers detailed specifications, usage instructions, and maintenance tips.
+  <Card title="Informasi Produk" icon="package">
+    Lihat ragam kategori produk kami, mulai dari sembako harian, pasokan usaha kuliner, hingga produk-produk unggulan lainnya.
   </Card>
 
-   <Card title="Construction Services" icon="seti:puppet">
-    Discover the complete lineup of ScrewFast's superior quality tools and equipment. Each subsection offers detailed specifications, usage instructions, and maintenance tips.
+  <Card title="Layanan Kami" icon="delivery">
+    Temukan informasi lengkap mengenai layanan kami, termasuk pembelian grosir, pengiriman, dan cakupan area layanan.
   </Card>
 
-   <Card title="Advanced Topics" icon="seti:terraform">
-    Discover the complete lineup of ScrewFast's superior quality tools and equipment. Each subsection offers detailed specifications, usage instructions, and maintenance tips.
+  <Card title="Pertanyaan Umum (FAQ)" icon="question-mark">
+    Dapatkan jawaban cepat untuk pertanyaan yang paling sering diajukan oleh pelanggan kami seputar produk dan layanan.
   </Card>
+
 </CardGrid>

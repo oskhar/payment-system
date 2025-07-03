@@ -1,23 +1,42 @@
-import ogImageSrc from "@images/social.png";
+import ogImageSrc from "@images/hero.jpg";
 
+// --- KONFIGURASI SITUS UTAMA ---
 export const SITE = {
-  title: "ScrewFast",
-  tagline: "Top-quality Hardware Tools",
+  // Nama brand/situs. Penting untuk branding dan SEO.
+  title: "Toko Muvie",
+
+  // Tagline singkat yang menjelaskan esensi bisnis Anda.
+  tagline: "Pusat Grosir & Retail Sembako Terlengkap",
+
+  // Deskripsi lengkap situs, digunakan untuk meta description dan SEO.
   description:
-    "ScrewFast offers top-tier hardware tools and expert construction services to meet all your project needs. Start exploring and contact our sales team for superior quality and reliability.",
+    "Toko Muvie menyediakan kebutuhan pokok (sembako) berkualitas untuk rumah tangga dan usaha kuliner. Dapatkan produk terlengkap mulai dari beras, minyak, gula, hingga bumbu dapur dengan harga grosir dan retail yang kompetitif. Kami siap melayani Anda dengan pengiriman cepat dan layanan terpercaya.",
+
+  // Deskripsi singkat, bisa digunakan di bagian yang lebih terbatas.
   description_short:
-    "ScrewFast offers top-tier hardware tools and expert construction services to meet all your project needs.",
-  url: "https://screwfast.uk",
-  author: "Emil Gulamov",
+    "Pusat grosir & retail sembako terlengkap dan terpercaya untuk kebutuhan rumah tangga dan usaha Anda.",
+
+  // URL utama situs web Anda. Pastikan menggunakan HTTPS.
+  url: "https://toko-muvie.duckdns.org",
+
+  // Nama pemilik atau entitas yang bertanggung jawab atas situs.
+  author: "Toko Muvie",
 };
 
+// --- KONFIGURASI SEO ---
 export const SEO = {
+  // Menggunakan judul dari konfigurasi utama.
   title: SITE.title,
+
+  // Menggunakan deskripsi dari konfigurasi utama.
   description: SITE.description,
+
+  // Structured Data (JSON-LD) untuk membantu mesin pencari memahami konten situs Anda.
+  // Ini sangat baik untuk SEO.
   structuredData: {
     "@context": "https://schema.org",
-    "@type": "WebPage",
-    inLanguage: "en-US",
+    "@type": "WebPage", // Tipe halaman, bisa juga 'Organization' atau 'LocalBusiness'
+    inLanguage: "id-ID", // Menentukan bahasa konten adalah Bahasa Indonesia
     "@id": SITE.url,
     url: SITE.url,
     name: SITE.title,
@@ -31,13 +50,26 @@ export const SEO = {
   },
 };
 
+// --- KONFIGURASI OPEN GRAPH (UNTUK SOCIAL MEDIA SHARING) ---
 export const OG = {
-  locale: "en_US",
+  // Menentukan lokal geografis dan bahasa, penting untuk target audiens.
+  locale: "id_ID",
+
+  // Tipe konten, 'website' adalah pilihan umum.
   type: "website",
+
+  // Menggunakan URL dari konfigurasi utama.
   url: SITE.url,
-  title: `${SITE.title}: : Hardware Tools & Construction Services`,
+
+  // Judul yang akan muncul saat link dibagikan di media sosial.
+  // Dibuat lebih menarik dan informatif.
+  title: `${SITE.title}: Solusi Kebutuhan Pokok Anda`,
+
+  // Deskripsi yang muncul di media sosial. Dibuat lebih persuasif.
   description:
-    "Equip your projects with ScrewFast's top-quality hardware tools and expert construction services. Trusted by industry leaders, ScrewFast offers simplicity, affordability, and reliability. Experience the difference with user-centric design and cutting-edge tools. Start exploring now!",
+    "Belanja sembako jadi lebih mudah di Toko Muvie! Temukan ratusan produk berkualitas dengan harga terbaik untuk dapur keluarga maupun pasokan bisnis kuliner Anda. Klik untuk lihat produk & promo terbaru!",
+
+  // Gambar yang akan ditampilkan saat link dibagikan. Ukuran ideal 1200x630px.
   image: ogImageSrc,
 };
 
