@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 
 // Local Components
 import ShoppingCard from '@/views/pages/items/ShoppingCard.vue'
-import StockTable from '@/views/pages/items/StockTable.vue' // Import komponen StockTable baru
+import StockTable from '@/views/pages/items/StockTable.vue'
 
 // =================================================================
 // Type Definitions
@@ -15,7 +15,7 @@ interface Item {
   name: string
   category: string
   stock: number
-  price: number // Menampilkan harga dasar di kartu, bisa disesuaikan
+  price: number
   barcode: string
   image_url: string
   description: string
@@ -27,10 +27,18 @@ interface Category {
   name: string
 }
 
-// Tipe untuk harga bertingkat sesuai skema
-interface ItemPriceTier {
+// [TAMBAH] Interface untuk data Satuan dari API
+interface Unit {
+  id: number
+  name: string
+}
+
+// [TAMBAH] Interface untuk struktur data satuan di dalam form
+interface FormUnit {
+  id: number | null
   price: number
-  min_quantity: number
+  cost: number
+  conversion_to_base: number
 }
 
 // =================================================================
@@ -46,35 +54,40 @@ const searchQuery = ref('')
 const categories = ref<Category[]>([])
 const selectedCategories = ref<number[]>([])
 
+// [TAMBAH] --- Unit State ---
+const units = ref<Unit[]>([])
+
+// [TAMBAH] --- Bulk Action State ---
+const selectedItemsForDeletion = ref<number[]>([])
+
 // --- Form State (Add Item Dialog) ---
 const isSubmitting = ref(false)
 const dialogAddItem = ref(false)
 
-// Mengadaptasi form state untuk harga bertingkat
+// [UBAH] Form state disesuaikan dengan skema backend baru
 const formAddItem = reactive({
   name: '',
   description: '',
   barcode: '',
   image: null as File | null,
-  item_prices: [{ price: 0, min_quantity: 1 }] as ItemPriceTier[], // Harga dasar selalu ada
+  units: [{ id: null, price: 0, cost: 0, conversion_to_base: 1 }] as FormUnit[],
+  base_unit_id: null as number | null,
 })
 
 // --- Pagination State ---
 const pagination = reactive({
   currentPage: 1,
-  totalPages: 3, // Nilai ini seharusnya dinamis dari API
+  totalPages: 3,
 })
 
 // =================================================================
 // Computed Properties
 // =================================================================
 
-// Cek apakah semua kategori dipilih
 const isAllCategoriesSelected = computed(() => {
   return categories.value.length > 0 && selectedCategories.value.length === categories.value.length
 })
 
-// Filter items based on search query
 const filteredItems = computed(() => {
   if (!searchQuery.value)
     return items.value
@@ -93,11 +106,10 @@ const filteredItems = computed(() => {
 const fetchItems = async () => {
   isLoadingItems.value = true
   try {
-    // Menambahkan parameter pencarian jika ada
     const params = {
       search: searchQuery.value,
 
-      // page: pagination.currentPage, // jika API mendukung paginasi
+      // page: pagination.currentPage,
     }
 
     const response = await axios.get(`${import.meta.env.VITE_API_URL}/item`, { params })
@@ -107,7 +119,6 @@ const fetchItems = async () => {
       image_url: `${import.meta.env.VITE_API_URL}${item.image_url}`,
     }))
 
-    // Update total pages for pagination if API provides it
     // pagination.totalPages = response.data.data.totalPages;
   }
   catch (error) {
@@ -127,10 +138,38 @@ const fetchCategories = async () => {
   try {
     const response = await axios.get(`${import.meta.env.VITE_API_URL}/category`)
 
-    categories.value = response.data.data
+    // Pastikan data yang diterima adalah array
+    if (Array.isArray(response.data.data)) {
+      categories.value = response.data.data
+    }
+    else {
+      console.error('Data kategori yang diterima bukan array:', response.data.data)
+      categories.value = []
+    }
   }
   catch (error) {
     console.error('Gagal mengambil data kategori:', error)
+  }
+}
+
+// [UBAH] Fungsi untuk mengambil data satuan dengan perbaikan
+const fetchUnits = async () => {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/unit`)
+    const unitsData = response.data.data?.units || response.data.data
+
+    // [FIX] Pastikan data yang diterima adalah array untuk VSelect
+    if (Array.isArray(unitsData)) {
+      units.value = unitsData
+    }
+    else {
+      console.error('Data satuan yang diterima bukan array:', unitsData)
+      units.value = [] // Set ke array kosong untuk menghindari error render
+    }
+  }
+  catch (error) {
+    console.error('Gagal mengambil data satuan:', error)
+    units.value = [] // Set ke array kosong jika terjadi error
   }
 }
 
@@ -189,7 +228,7 @@ const addCategory = async () => {
 }
 
 // =================================================================
-// Functions: Item Management (Form)
+// Functions: Item Management (Form & Dialog)
 // =================================================================
 
 const handleFileUpload = (event: Event) => {
@@ -198,45 +237,90 @@ const handleFileUpload = (event: Event) => {
     formAddItem.image = target.files[0]
 }
 
-// Fungsi untuk menambah baris harga bertingkat baru
-const addPriceTier = () => {
-  formAddItem.item_prices.push({ price: 0, min_quantity: 0 })
+// [UBAH] Mengganti fungsi `addPriceTier` menjadi `addUnit`
+const addUnit = () => {
+  formAddItem.units.push({ id: null, price: 0, cost: 0, conversion_to_base: 0 })
 }
 
-// Fungsi untuk menghapus baris harga bertingkat
-const removePriceTier = (index: number) => {
-  formAddItem.item_prices.splice(index, 1)
+// [UBAH] Mengganti fungsi `removePriceTier` menjadi `removeUnit`
+const removeUnit = (index: number) => {
+  // Cegah penghapusan satuan pertama
+  if (index > 0) {
+    const removedUnitId = formAddItem.units[index].id
+
+    // Jika satuan yang dihapus adalah base_unit, reset base_unit_id ke satuan pertama
+    if (removedUnitId && removedUnitId === formAddItem.base_unit_id)
+      formAddItem.base_unit_id = formAddItem.units[0].id
+
+    formAddItem.units.splice(index, 1)
+  }
 }
 
+// [UBAH] Menyesuaikan fungsi reset form
 const resetForm = () => {
   formAddItem.name = ''
   formAddItem.description = ''
   formAddItem.barcode = ''
   formAddItem.image = null
   selectedCategories.value = []
+  formAddItem.units = [{ id: null, price: 0, cost: 0, conversion_to_base: 1 }]
+  formAddItem.base_unit_id = null
 
-  // Reset harga ke kondisi awal
-  formAddItem.item_prices = [{ price: 0, min_quantity: 1 }]
+  const fileInput = document.getElementById('file-input') as HTMLInputElement
+  if (fileInput)
+    fileInput.value = ''
 }
 
-// Submit form untuk menambahkan item baru
+const closeAndResetDialog = () => {
+  dialogAddItem.value = false
+  resetForm()
+}
+
+// [UBAH] Menyesuaikan fungsi submit form dengan skema baru
 const submitForm = async () => {
   if (isSubmitting.value)
     return
+
+  // Validasi sederhana
+  if (!formAddItem.base_unit_id) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Input Tidak Lengkap',
+      text: 'Harap tentukan satuan dasar untuk item ini.',
+    })
+
+    return
+  }
 
   isSubmitting.value = true
 
   const formData = new FormData()
 
-  // Menyusun data sesuai skema baru
+  // Data utama
   formData.append('name', formAddItem.name)
-  formData.append('description', formAddItem.description)
+  formData.append('description', formAddItem.description || '')
   formData.append('barcode', formAddItem.barcode)
-  formData.append('categories', JSON.stringify(selectedCategories.value))
+  formData.append('base_unit_id', String(formAddItem.base_unit_id))
 
-  // Mengubah array of objects menjadi JSON string
-  formData.append('item_prices', JSON.stringify(formAddItem.item_prices))
+  // [FIX] Mengirim data array dengan benar menggunakan notasi kurung siku
+  // untuk kategori
+  selectedCategories.value.forEach((id, index) => {
+    formData.append(`category[${index}][id]`, String(id))
+  })
 
+  // untuk unit
+  formAddItem.units
+    .filter(u => u.id) // Pastikan hanya unit yang sudah dipilih yang dikirim
+    .forEach((unit, index) => {
+      if (unit.id) {
+        formData.append(`unit[${index}][id]`, String(unit.id))
+        formData.append(`unit[${index}][price]`, String(unit.price))
+        formData.append(`unit[${index}][cost]`, String(unit.cost))
+        formData.append(`unit[${index}][conversion_to_base]`, String(unit.conversion_to_base))
+      }
+    })
+
+  // File gambar (jika ada)
   if (formAddItem.image)
     formData.append('image', formAddItem.image)
 
@@ -248,8 +332,7 @@ const submitForm = async () => {
     })
 
     await fetchItems()
-    dialogAddItem.value = false
-    resetForm()
+    closeAndResetDialog()
 
     Swal.fire({
       icon: 'success',
@@ -272,10 +355,79 @@ const submitForm = async () => {
   }
 }
 
-// Handler ketika item di-update dari komponen child
 const onItemUpdated = async () => {
   await fetchItems()
 }
+
+// [TAMBAH] Fungsi untuk menghapus item yang dipilih secara massal
+const deleteSelectedItems = async () => {
+  // Pastikan ada item yang dipilih
+  if (selectedItemsForDeletion.value.length === 0) {
+    Swal.fire('Pilih Item', 'Silakan pilih satu atau lebih item yang ingin dihapus.', 'info')
+
+    return
+  }
+
+  // Konfirmasi pengguna
+  const result = await Swal.fire({
+    title: `Hapus ${selectedItemsForDeletion.value.length} Item?`,
+    text: 'Tindakan ini tidak dapat dibatalkan!',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#6e7881',
+    confirmButtonText: 'Ya, hapus!',
+    cancelButtonText: 'Batal',
+    reverseButtons: true,
+  })
+
+  if (result.isConfirmed) {
+    try {
+      // Siapkan payload. Backend diharapkan menerima objek dengan key 'ids'
+      // yang berisi array of numbers.
+      const payload = {
+        ids: selectedItemsForDeletion.value,
+      }
+
+      // Kirim request DELETE dengan payload di dalam body (properti 'data' di axios)
+      await axios.delete(`${import.meta.env.VITE_API_URL}/item`, {
+        data: payload,
+      })
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Dihapus!',
+        text: `Berhasil menghapus ${selectedItemsForDeletion.value.length} item.`,
+        timer: 2000,
+        showConfirmButton: false,
+      })
+
+      // Muat ulang daftar item dan kosongkan pilihan
+      await fetchItems()
+      selectedItemsForDeletion.value = []
+    }
+    catch (error: any) {
+      console.error('Gagal menghapus item:', error)
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Menghapus',
+        text: error.response?.data?.message || 'Terjadi kesalahan pada server.',
+      })
+    }
+  }
+}
+
+// =================================================================
+// Watchers
+// =================================================================
+// [TAMBAH] Watcher untuk auto-set base_unit_id ke satuan pertama saat dipilih
+watch(
+  () => formAddItem.units[0].id,
+  newId => {
+    if (newId)
+      formAddItem.base_unit_id = newId
+  },
+)
 
 // =================================================================
 // Lifecycle Hooks
@@ -284,11 +436,12 @@ const onItemUpdated = async () => {
 onMounted(async () => {
   await fetchItems()
   await fetchCategories()
+  await fetchUnits() // [TAMBAH] Panggil fetchUnits
 })
 </script>
 
 <template>
-  <!-- VCard paling atas sekarang hanya berisi fungsionalitas pencarian -->
+  <!-- Search Card -->
   <VCard class="mb-10">
     <VCardText>
       <VForm @submit.prevent="fetchItems">
@@ -321,6 +474,7 @@ onMounted(async () => {
     </VCardText>
   </VCard>
 
+  <!-- Items List Card -->
   <VCard class="mb-10">
     <VCardTitle class="d-flex justify-space-between align-center pa-5">
       <h5 class="text-h5">
@@ -352,7 +506,6 @@ onMounted(async () => {
           </p>
         </VCol>
 
-        <!-- Menggunakan filteredItems untuk menampilkan hasil -->
         <template v-else-if="filteredItems.length > 0">
           <VCol
             v-for="item in filteredItems"
@@ -394,7 +547,10 @@ onMounted(async () => {
       </VRow>
     </div>
 
-    <div class="text-center pb-5">
+    <div
+      v-if="filteredItems.length > 0"
+      class="text-center pb-5"
+    >
       <VPagination
         v-model="pagination.currentPage"
         :length="pagination.totalPages"
@@ -405,168 +561,237 @@ onMounted(async () => {
     </div>
   </VCard>
 
-  <!-- Card untuk Tabel CRUD Stock -->
+  <!-- Stock Management Card -->
   <VCard class="mt-10">
-    <VCardTitle class="pa-5">
+    <VCardTitle class="pa-5 d-flex justify-space-between align-center">
       <h5 class="text-h5">
         Manajemen Stok Item
       </h5>
+      <!-- [TAMBAH] Tombol untuk hapus item yang dipilih. Muncul saat ada item terpilih -->
+      <VBtn
+        v-if="selectedItemsForDeletion.length > 0"
+        color="error"
+        variant="elevated"
+        prepend-icon="ri-delete-bin-line"
+        @click="deleteSelectedItems"
+      >
+        Hapus Terpilih ({{ selectedItemsForDeletion.length }})
+      </VBtn>
     </VCardTitle>
     <VCardText>
-      <StockTable :items="items" />
-      <!-- Meneruskan daftar item ke komponen StockTable -->
+      <!-- [UBAH] Tambahkan v-model untuk mengelola item terpilih dari/ke child component -->
+      <StockTable
+        v-model:selected-items="selectedItemsForDeletion"
+        :items="items"
+        @updated="onItemUpdated"
+      />
     </VCardText>
   </VCard>
 
+  <!-- [UBAH] Dialog Tambah Item disesuaikan -->
   <VDialog
     v-model="dialogAddItem"
-    max-width="600"
+    max-width="800"
     persistent
   >
     <VCard>
       <VForm @submit.prevent="submitForm">
-        <VCardTitle class="pa-4">
-          Tambah Item Baru
+        <VCardTitle class="pa-4 d-flex justify-space-between align-center">
+          <span>Tambah Item Baru</span>
+          <VBtn
+            icon="ri-close-line"
+            variant="text"
+            @click="closeAndResetDialog"
+          />
         </VCardTitle>
 
         <VCardText class="pb-0">
-          <VTextField
-            v-model="formAddItem.name"
-            label="Nama Item"
-            class="mb-4"
-            required
-            data-testid="form-item-name"
-          />
+          <VRow>
+            <!-- Kolom Kiri: Info Dasar -->
+            <VCol
+              cols="12"
+              md="6"
+            >
+              <VTextField
+                v-model="formAddItem.name"
+                label="Nama Item"
+                class="mb-4"
+                required
+                data-testid="form-item-name"
+              />
 
-          <VSelect
-            v-model="selectedCategories"
-            label="Kategori"
-            :items="categories"
-            item-title="name"
-            item-value="id"
-            multiple
-            chips
-            clearable
-            closable-chips
-            class="mb-4"
-          >
-            <template #prepend-item>
-              <VListItem
-                title="Tambah Kategori Baru"
-                @click="addCategory"
+              <div class="d-flex align-start ga-2 mb-4">
+                <VSelect
+                  v-model="selectedCategories"
+                  label="Kategori"
+                  :items="categories"
+                  item-title="name"
+                  item-value="id"
+                  multiple
+                  chips
+                  clearable
+                  closable-chips
+                  class="flex-grow-1"
+                >
+                  <template #prepend-item>
+                    <VListItem
+                      title="Pilih Semua"
+                      @click="toggleSelectAllCategories"
+                    >
+                      <template #prepend>
+                        <VCheckbox
+                          :model-value="isAllCategoriesSelected"
+                          readonly
+                          class="mr-2"
+                        />
+                      </template>
+                    </VListItem>
+                    <VDivider class="mt-2" />
+                  </template>
+                </VSelect>
+                <VBtn
+                  icon="ri-add-line"
+                  aria-label="Tambah Kategori Baru"
+                  title="Tambah Kategori Baru"
+                  @click="addCategory"
+                />
+              </div>
+
+              <VFileInput
+                id="file-input"
+                label="Upload Gambar (Opsional)"
+                accept="image/*"
+                class="mb-4"
+                @change="handleFileUpload"
+              />
+
+              <VTextField
+                v-model="formAddItem.barcode"
+                label="Barcode Item (Opsional)"
+                class="mb-4"
+              />
+
+              <VTextarea
+                v-model="formAddItem.description"
+                label="Deskripsi (Opsional)"
+                rows="3"
+              />
+            </VCol>
+
+            <!-- Kolom Kanan: Pengaturan Satuan & Harga -->
+            <VCol
+              cols="12"
+              md="6"
+            >
+              <p class="text-subtitle-1 mb-2">
+                Pengaturan Satuan & Harga
+              </p>
+              <p class="text-caption text-medium-emphasis mb-4">
+                Tentukan semua satuan jual untuk item ini. Pilih salah satu sebagai
+                <b>satuan dasar</b> (acuan stok).
+              </p>
+
+              <VRadioGroup
+                v-model="formAddItem.base_unit_id"
+                class="w-100"
               >
-                <template #prepend>
-                  <VIcon
-                    icon="ri-add-box-line"
-                    class="mr-2"
+                <div
+                  v-for="(unit, index) in formAddItem.units"
+                  :key="index"
+                  class="unit-row mb-4"
+                >
+                  <div class="d-flex align-center ga-2">
+                    <VRadio
+                      :value="unit.id"
+                      :disabled="!unit.id"
+                      class="mt-4"
+                    />
+                    <VSelect
+                      v-model="unit.id"
+                      label="Satuan"
+                      :items="units"
+                      item-title="name"
+                      item-value="id"
+                      density="compact"
+                      hide-details
+                      style="min-width: 120px"
+                      required
+                    />
+                    <VBtn
+                      v-if="index > 0"
+                      icon="ri-delete-bin-line"
+                      variant="text"
+                      color="error"
+                      size="small"
+                      @click="removeUnit(index)"
+                    />
+                  </div>
+                  <VRow class="pl-12 pt-2">
+                    <VCol
+                      cols="12"
+                      sm="6"
+                    >
+                      <VTextField
+                        v-model.number="unit.cost"
+                        label="Harga Beli (Modal)"
+                        type="number"
+                        prefix="Rp"
+                        density="compact"
+                        hide-details
+                        required
+                      />
+                    </VCol>
+                    <VCol
+                      cols="12"
+                      sm="6"
+                    >
+                      <VTextField
+                        v-model.number="unit.price"
+                        label="Harga Jual"
+                        type="number"
+                        prefix="Rp"
+                        density="compact"
+                        hide-details
+                        required
+                      />
+                    </VCol>
+                    <VCol cols="12">
+                      <VTextField
+                        v-model.number="unit.conversion_to_base"
+                        label="Konversi ke Satuan Dasar"
+                        type="number"
+                        :disabled="index === 0"
+                        density="compact"
+                        :hint="index === 0 ? 'Satuan pertama adalah acuan dasar (nilai 1)' : ''"
+                        persistent-hint
+                        required
+                      />
+                    </VCol>
+                  </VRow>
+                  <VDivider
+                    v-if="index < formAddItem.units.length - 1"
+                    class="mt-4"
                   />
-                </template>
-              </VListItem>
+                </div>
+              </VRadioGroup>
 
-              <VListItem
-                title="Pilih Semua"
-                @click="toggleSelectAllCategories"
+              <VBtn
+                block
+                variant="tonal"
+                color="primary"
+                prepend-icon="ri-add-line"
+                @click="addUnit"
               >
-                <template #prepend>
-                  <VCheckbox
-                    :model-value="isAllCategoriesSelected"
-                    readonly
-                    class="mr-2"
-                  />
-                </template>
-              </VListItem>
-              <VDivider class="mt-2" />
-            </template>
-          </VSelect>
-
-          <p class="text-subtitle-1 mb-2">
-            Pengaturan Harga
-          </p>
-
-          <VTextField
-            v-model.number="formAddItem.item_prices[0].price"
-            label="Harga Dasar"
-            type="number"
-            prefix="Rp"
-            class="mb-2"
-            required
-            hint="Harga ini berlaku untuk pembelian minimal 1 buah."
-            persistent-hint
-          />
-
-          <VDivider class="my-4" />
-
-          <div
-            v-for="(tier, index) in formAddItem.item_prices.slice(1)"
-            :key="index"
-            class="d-flex align-center ga-2 mb-3"
-          >
-            <VTextField
-              v-model.number="formAddItem.item_prices[index + 1].min_quantity"
-              label="Min. Kuantitas"
-              type="number"
-              density="compact"
-              hide-details
-              style="width: 150px"
-            />
-            <VTextField
-              v-model.number="formAddItem.item_prices[index + 1].price"
-              label="Harga per Item"
-              type="number"
-              prefix="Rp"
-              density="compact"
-              hide-details
-              class="flex-grow-1"
-            />
-            <VBtn
-              icon="ri-delete-bin-line"
-              variant="text"
-              color="error"
-              size="small"
-              @click="removePriceTier(index + 1)"
-            />
-          </div>
-
-          <VBtn
-            block
-            variant="tonal"
-            color="primary"
-            prepend-icon="ri-add-line"
-            class="mb-4"
-            @click="addPriceTier"
-          >
-            Tambah Harga Bertingkat
-          </VBtn>
-
-          <VDivider class="my-4" />
-
-          <VFileInput
-            label="Upload Gambar"
-            accept="image/*"
-            class="mb-4"
-            required
-            @change="handleFileUpload"
-          />
-
-          <VTextField
-            v-model="formAddItem.barcode"
-            label="Barcode Item (Opsional)"
-          />
-
-          <VTextarea
-            v-model="formAddItem.description"
-            label="Deskripsi (Opsional)"
-            class="mt-4"
-            rows="3"
-            required
-          />
+                Tambah Satuan Lain
+              </VBtn>
+            </VCol>
+          </VRow>
         </VCardText>
 
-        <VCardActions class="pa-4 d-flex justify-end">
+        <VCardActions class="pa-4 mt-4 d-flex justify-end">
           <VBtn
             color="secondary"
-            variant="text"
-            @click="dialogAddItem = false"
+            @click="closeAndResetDialog"
           >
             Batal
           </VBtn>
@@ -587,5 +812,9 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-/* Menghapus style yang tidak lagi relevan */
+.unit-row {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+}
 </style>

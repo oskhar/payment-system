@@ -15,11 +15,22 @@
       <h3 class="title">
         {{ item.name }}
       </h3>
-      <p class="price">
+      <p class="price mt-3">
+        Harga:
         {{ formattedBasePrice }}
       </p>
+      <p class="price text-caption text-secondary">
+        Modal:
+        {{
+          new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+          }).format(item.cost || 0)
+        }}
+      </p>
       <p class="stock" :class="{ 'out-of-stock': item.stock === 0 }">
-        Stok: {{ item.stock }}
+        Stok: {{ item.stock }} {{ baseUnitName }}
       </p>
       <p class="barcode">Barcode: {{ item.barcode || '-' }}</p>
 
@@ -53,57 +64,84 @@
   <!-- !SECTION -->
 
   <!-- SECTION: Edit Item Dialog -->
-  <VDialog v-model="dialogs.itemForm" max-width="600" persistent>
+  <VDialog v-model="dialogs.itemForm" max-width="800" persistent>
     <VCard>
       <VForm @submit.prevent="submitItemForm">
-        <VCardTitle class="pa-4"> Edit Item </VCardTitle>
+        <VCardTitle class="pa-4 d-flex justify-space-between align-center">
+          <span>Edit Item</span>
+          <VBtn icon="ri-close-line" variant="text" @click="closeAllDialogs" />
+        </VCardTitle>
 
         <VCardText class="pb-0">
-          <VTextField v-model="form.name" label="Nama Item" class="mb-4" required />
-          <VTextField v-model="form.barcode" label="Barcode Item" class="mb-4" />
-          <VSelect v-model="form.selectedCategories" label="Kategori" :items="categories" item-title="name"
-            item-value="id" multiple chips clearable closable-chips class="mb-4" variant="outlined">
-            <template #prepend-item>
-              <VListItem title="Pilih Semua" @click="toggleSelectAllCategories">
-                <template #prepend>
-                  <VCheckbox :model-value="isAllCategoriesSelected" />
+          <VRow>
+            <!-- Kolom Kiri: Info Dasar -->
+            <VCol cols="12" md="6">
+              <VTextField v-model="form.name" label="Nama Item" class="mb-4" required />
+              <VTextField v-model="form.barcode" label="Barcode Item" class="mb-4" />
+              <VSelect v-model="form.selectedCategories" label="Kategori" :items="categories" item-title="name"
+                item-value="id" multiple chips clearable closable-chips class="mb-4">
+                <template #prepend-item>
+                  <VListItem title="Pilih Semua" @click="toggleSelectAllCategories">
+                    <template #prepend>
+                      <VCheckbox :model-value="isAllCategoriesSelected" />
+                    </template>
+                  </VListItem>
+                  <VDivider />
                 </template>
-              </VListItem>
-              <VDivider />
-            </template>
-          </VSelect>
+              </VSelect>
+              <VTextarea v-model="form.description" label="Deskripsi" rows="2" class="mb-4" />
+              <VFileInput v-model="form.imageFile" label="Upload Gambar Baru (Opsional)" accept="image/*"
+                prepend-icon="" prepend-inner-icon="ri-image-add-line" />
+            </VCol>
 
-          <!-- Price Section -->
-          <p class="text-subtitle-1 mb-2">Pengaturan Harga</p>
-          <VTextField v-if="form.item_prices.length > 0" v-model.number="form.item_prices[0].price" label="Harga Dasar"
-            type="number" prefix="Rp" class="mb-2" required hint="Harga untuk pembelian minimal 1 buah."
-            persistent-hint />
-          <VDivider class="my-4" />
+            <!-- Kolom Kanan: Pengaturan Satuan & Harga -->
+            <VCol cols="12" md="6">
+              <p class="text-subtitle-1 mb-2">Pengaturan Satuan & Harga</p>
+              <p class="text-caption text-medium-emphasis mb-4">
+                Pilih salah satu sebagai <b>satuan dasar</b> (acuan stok).
+              </p>
 
-          <!-- Tiered Prices -->
-          <div v-for="(tier, index) in form.item_prices.slice(1)" :key="index" class="d-flex align-center ga-2 mb-3">
-            <VTextField v-model.number="form.item_prices[index + 1].min_quantity" label="Min. Kuantitas" type="number"
-              density="compact" hide-details style="width: 150px" />
-            <VTextField v-model.number="form.item_prices[index + 1].price" label="Harga per Item" type="number"
-              prefix="Rp" density="compact" hide-details class="flex-grow-1" />
-            <VBtn icon="ri-delete-bin-line" variant="text" color="error" size="small"
-              @click="removePriceTier(index + 1)" />
-          </div>
-          <VBtn block variant="tonal" color="primary" prepend-icon="ri-add-line" class="mb-4" @click="addPriceTier">
-            Tambah Harga Bertingkat
-          </VBtn>
-          <VDivider class="my-4" />
+              <VRadioGroup v-model="form.base_unit_id" class="w-100">
+                <div v-for="(unit, index) in form.units" :key="index" class="unit-row mb-4">
+                  <div class="d-flex align-center ga-2">
+                    <VRadio :value="unit.id" :disabled="!unit.id" class="mt-4" />
+                    <VSelect v-model="unit.id" label="Satuan" :items="units" item-title="name" item-value="id"
+                      density="compact" hide-details style="min-width: 120px" required />
+                    <VBtn v-if="index > 0" icon="ri-delete-bin-line" variant="text" color="error" size="small"
+                      @click="removeUnit(index)" />
+                  </div>
+                  <VRow class="pl-12 pt-2">
+                    <VCol cols="12" sm="6">
+                      <VTextField v-model.number="unit.cost" label="Harga Beli (Modal)" type="number" prefix="Rp"
+                        density="compact" hide-details required />
+                    </VCol>
+                    <VCol cols="12" sm="6">
+                      <VTextField v-model.number="unit.price" label="Harga Jual" type="number" prefix="Rp"
+                        density="compact" hide-details required />
+                    </VCol>
+                    <VCol cols="12">
+                      <VTextField v-model.number="unit.conversion_to_base" label="Konversi ke Satuan Dasar"
+                        type="number" :disabled="index === 0" density="compact"
+                        :hint="index === 0 ? 'Satuan pertama adalah acuan dasar (nilai 1)' : ''" persistent-hint
+                        required />
+                    </VCol>
+                  </VRow>
+                  <VDivider v-if="index < form.units.length - 1" class="mt-4" />
+                </div>
+              </VRadioGroup>
 
-          <VTextarea v-model="form.description" label="Deskripsi" rows="3" class="mb-4" />
-          <VFileInput v-model="form.imageFile" label="Upload Gambar Baru (Opsional)" accept="image/*" prepend-icon=""
-            prepend-inner-icon="ri-image-add-line" />
+              <VBtn block variant="tonal" color="primary" prepend-icon="ri-add-line" @click="addUnit">
+                Tambah Satuan Lain
+              </VBtn>
+            </VCol>
+          </VRow>
         </VCardText>
 
         <VCardActions class="pa-4 d-flex justify-end">
           <VBtn color="secondary" variant="text" @click="closeAllDialogs">
             Batal
           </VBtn>
-          <VBtn type="submit" variant="elevated" color="primary">
+          <VBtn type="submit" variant="elevated" color="primary" :loading="isSubmitting">
             Update
           </VBtn>
         </VCardActions>
@@ -157,10 +195,17 @@ interface Category {
   name: string
 }
 
-interface ItemPrice {
-  id?: number // ID bersifat opsional, karena harga baru belum punya ID
+interface Unit {
+  id: number
+  name: string
+}
+
+interface ItemUnit {
+  id: number
   price: number
-  min_quantity: number
+  cost: number
+  conversion_to_base: number
+  unit: Unit // Relasi ke detail satuan
 }
 
 interface Item {
@@ -171,7 +216,8 @@ interface Item {
   stock: number
   categories: Category[]
   description: string
-  item_prices: ItemPrice[] // Relasi baru
+  units: ItemUnit[] // Mengganti item_prices
+  base_unit_id: number // ID satuan dasar
 }
 
 // =================================================================
@@ -194,12 +240,15 @@ const dialogs = reactive({
   restock: false,
 })
 
+const isSubmitting = ref(false)
+
 const form = reactive({
   name: '',
   barcode: '',
-  selectedCategories: [] as number[],
-  item_prices: [{ price: 0, min_quantity: 1 }] as ItemPrice[], // State untuk harga bertingkat
   description: '',
+  selectedCategories: [] as number[],
+  units: [] as Partial<ItemUnit>[],
+  base_unit_id: null as number | null,
   imageFile: null as File[] | null,
 })
 
@@ -212,15 +261,28 @@ const restockForm = reactive({
 })
 
 const categories = ref<Category[]>([])
+const units = ref<Unit[]>([]) // Untuk VSelect
 
 // =================================================================
 // Computed Properties
 // =================================================================
 
+const baseUnit = computed(() => {
+  // [FIX] Add a guard clause to prevent error if units array is not present.
+  if (!props.item || !Array.isArray(props.item.units)) {
+    return undefined
+  }
+  return props.item.units.find(u => u.id === props.item.base_unit_id)
+})
+
 const formattedBasePrice = computed(() => {
-  const basePriceTier = props.item.item_prices?.find(p => p.min_quantity === 1)
-  const price = basePriceTier?.price || 0
+  const price = props.item.price || 0
+
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price)
+})
+
+const baseUnitName = computed(() => {
+  return baseUnit.value?.unit.name || ''
 })
 
 const isAllCategoriesSelected = computed(() => {
@@ -233,24 +295,20 @@ const isAllCategoriesSelected = computed(() => {
 
 const openItemFormDialog = () => {
   // Populate form with existing item data for editing
+  console.log(props.item)
   form.name = props.item.name
   form.barcode = props.item.barcode
-  form.selectedCategories = props.item.categories.map(c => c.id)
+  form.selectedCategories = props.item.item_categories.map(c => c.id)
   form.description = props.item.description || ''
+  form.base_unit_id = props.item.base_unit_id
 
-  // PERBAIKAN: Logika pengisian harga yang lebih aman
-  // Deep copy harga untuk menghindari mutasi props
-  let prices = JSON.parse(JSON.stringify(props.item.item_prices || []))
+  // Deep copy units untuk menghindari mutasi props
+  form.units = JSON.parse(JSON.stringify(props.item.units || []))
 
-  // Pastikan selalu ada minimal satu harga (harga dasar)
-  if (prices.length === 0) {
-    prices.push({ price: 0, min_quantity: 1 })
+  // Pastikan unit pertama memiliki konversi 1 dan non-aktif
+  if (form.units.length > 0) {
+    form.units[0].conversion_to_base = 1
   }
-
-  // Paksa harga dasar (elemen pertama) untuk selalu memiliki min_quantity: 1
-  prices[0].min_quantity = 1
-
-  form.item_prices = prices
 
   form.imageFile = null // Reset file input
   dialogs.itemForm = true
@@ -263,37 +321,21 @@ const openRestockDialog = () => {
 const closeAllDialogs = () => {
   dialogs.itemForm = false
   dialogs.restock = false
-  resetItemForm()
-  resetRestockForm()
 }
 
 // =================================================================
 // Functions: Form Handling
 // =================================================================
 
-const resetItemForm = () => {
-  form.name = ''
-  form.barcode = ''
-  form.selectedCategories = []
-  form.item_prices = [{ price: 0, min_quantity: 1 }]
-  form.description = ''
-  form.imageFile = null
+const addUnit = () => {
+  form.units.push({ id: null, price: 0, cost: 0, conversion_to_base: 0 })
 }
 
-const resetRestockForm = () => {
-  restockForm.transaction_number = ''
-  restockForm.transaction_number_auto = true
-  restockForm.type = 'stock_in'
-  restockForm.description = ''
-  restockForm.quantity = 0
-}
-
-const addPriceTier = () => {
-  form.item_prices.push({ price: 0, min_quantity: 0 })
-}
-
-const removePriceTier = (index: number) => {
-  form.item_prices.splice(index, 1)
+const removeUnit = (index: number) => {
+  if (index > 0) {
+    // Cegah penghapusan unit pertama (dasar)
+    form.units.splice(index, 1)
+  }
 }
 
 const toggleSelectAllCategories = () => {
@@ -306,36 +348,52 @@ const toggleSelectAllCategories = () => {
 // =================================================================
 
 const submitItemForm = async () => {
+  isSubmitting.value = true
   try {
-    // PERBAIKAN: Pastikan kuantitas minimum untuk harga dasar adalah 1 sebelum submit
-    if (form.item_prices.length > 0) {
-      form.item_prices[0].min_quantity = 1
-    }
-
     const formData = new FormData()
+
+    // Tambahkan _method 'PUT' untuk memberitahu backend ini adalah update
+    formData.append('_method', 'PUT')
+
     formData.append('name', form.name)
     formData.append('barcode', form.barcode)
     formData.append('description', form.description)
-    formData.append('categories', JSON.stringify(form.selectedCategories))
+    if (form.base_unit_id) {
+      formData.append('base_unit_id', String(form.base_unit_id))
+    }
 
-    // Kirim data harga sebagai string JSON
-    formData.append('item_prices', JSON.stringify(form.item_prices))
+    // Kirim kategori
+    form.selectedCategories.forEach((id, index) => {
+      formData.append(`category[${index}][id]`, String(id))
+    })
+
+    // Kirim unit
+    form.units.forEach((unit, index) => {
+      if (unit.id) {
+        formData.append(`unit[${index}][id]`, String(unit.id))
+        formData.append(`unit[${index}][price]`, String(unit.price))
+        formData.append(`unit[${index}][cost]`, String(unit.cost))
+        formData.append(`unit[${index}][conversion_to_base]`, String(unit.conversion_to_base))
+      }
+    })
 
     if (form.imageFile?.[0]) {
       formData.append('image', form.imageFile[0])
     }
 
-    // Menggunakan metode PUT untuk update (lebih sesuai semantik REST)
-    await axios.put(`${import.meta.env.VITE_API_URL}/item/${props.item.id}`, formData, {
+    // Gunakan POST, karena FormData dengan PUT tidak selalu didukung penuh
+    await axios.post(`${import.meta.env.VITE_API_URL}/item/${props.item.id}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
 
     Swal.fire('Berhasil', 'Item berhasil diperbarui.', 'success')
     emit('updated')
-  } catch (error) {
+  } catch (error: any) {
     console.error('Gagal submit form:', error)
-    Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan data.', 'error')
+    const message = error.response?.data?.message || 'Terjadi kesalahan saat menyimpan data.'
+    Swal.fire('Gagal', message, 'error')
   } finally {
+    isSubmitting.value = false
     closeAllDialogs()
   }
 }
@@ -382,7 +440,7 @@ const handleDeleteItem = async () => {
 
   if (result.isConfirmed) {
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/item`, { data: { ids: [parseInt(props.item.id)] } })
+      await axios.delete(`${import.meta.env.VITE_API_URL}/item`, { data: { ids: [props.item.id] } })
       Swal.fire('Terhapus!', 'Item berhasil dihapus.', 'success')
       emit('updated')
     } catch (err) {
@@ -392,12 +450,23 @@ const handleDeleteItem = async () => {
   }
 }
 
-const fetchCategories = async () => {
+const fetchInitialData = async () => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/category`)
-    categories.value = response.data.data
+    const [categoriesRes, unitsRes] = await Promise.all([
+      axios.get(`${import.meta.env.VITE_API_URL}/category`),
+      axios.get(`${import.meta.env.VITE_API_URL}/unit`),
+    ])
+
+    if (Array.isArray(categoriesRes.data.data)) {
+      categories.value = categoriesRes.data.data
+    }
+
+    const unitsData = unitsRes.data.data?.units || unitsRes.data.data
+    if (Array.isArray(unitsData)) {
+      units.value = unitsData
+    }
   } catch (error) {
-    console.error('Gagal mengambil data kategori:', error)
+    console.error('Gagal mengambil data awal:', error)
   }
 }
 
@@ -406,7 +475,7 @@ const fetchCategories = async () => {
 // =================================================================
 
 onMounted(() => {
-  fetchCategories()
+  fetchInitialData()
 })
 </script>
 
@@ -470,5 +539,11 @@ onMounted(() => {
     gap: 6px;
     min-height: 30px; // ensure consistent height even with no chips
   }
+}
+
+.unit-row {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 12px;
 }
 </style>

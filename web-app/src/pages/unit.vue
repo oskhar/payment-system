@@ -26,7 +26,7 @@ const fetchUnits = async () => {
 
     // Memperbarui state 'units' dengan data dari response
     // Response dari backend sudah termasuk 'id', 'name', 'code', dan 'createdAt'
-    units.value = response.data.data || []
+    units.value = response.data.data.units || []
 
     console.log('Units:', response.data)
   }
@@ -47,7 +47,7 @@ const addUnit = async () => {
     // Mengirim POST request dengan nama dan kode unit baru
     const response = await axios.post(`${import.meta.env.VITE_API_URL}/unit`, {
       name: name.value,
-      code: code.value, // Menambahkan 'code' ke payload
+      abbreviation: code.value,
     })
 
     // Menampilkan notifikasi sukses menggunakan SweetAlert2

@@ -13,11 +13,11 @@
       />
       By
       <a
-        href="https://samtek.id"
+        href="https://github.com/oskhar"
         target="_blank"
         rel="noopener noreferrer"
         class="text-primary ms-1"
-      >SAM TEKNOLOGI</a>
+      >Oskhar</a>
     </span>
   </div>
 </template>

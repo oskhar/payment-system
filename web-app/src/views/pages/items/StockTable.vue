@@ -71,7 +71,7 @@ const stockHeaders: StockHeader[] = [
 const fetchStocks = async () => {
   isLoadingStocks.value = true
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/item/stock`)
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/stock`)
 
     stocks.value = response.data.data.map((stock: any) => ({
       ...stock,
@@ -172,7 +172,7 @@ const deleteSelectedStocks = async () => {
   if (result.isConfirmed) {
     try {
       // The backend expects an object with 'ids' array
-      await axios.delete(`${import.meta.env.VITE_API_URL}/item/stock`, { data: { ids: selectedStockIds.value } })
+      await axios.delete(`${import.meta.env.VITE_API_URL}/stock`, { data: { ids: selectedStockIds.value } })
 
       await fetchStocks() // Refresh stock list
       selectedStockIds.value = [] // Clear selection
