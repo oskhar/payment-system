@@ -14,17 +14,17 @@ export class ImageUploadProvider {
     size: z.number().max(this.maxSize, 'Ukuran file maksimal 5MB'),
   });
 
-  async validateImage(file: Express.Multer.File): Promise<void> {
+  validateImage(file: Express.Multer.File): void {
     const validation = this.imageSchema.safeParse(file);
     if (!validation.success) {
       throw new BadRequestException(
-        validation.error.errors.map((err) => err.message).join(', '),
+        validation.error.issues.map((issue) => issue.message).join(', '),
       );
     }
   }
 
-  async uploadImage(file: Express.Multer.File): Promise<string> {
-    await this.validateImage(file);
+  uploadImage(file: Express.Multer.File): string {
+    this.validateImage(file);
     return `/uploads/image/${file.filename}`;
   }
 }

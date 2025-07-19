@@ -1,13 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ErrorFilter } from './common/filter/error.filter';
-import { ResponseInterceptor } from './common/interceptor/response.interceptor';
 import * as express from 'express';
+import { ResponseInterceptor } from './common/interceptor/response.interceptor';
+import { ErrorFilter } from './common/filter/error.filter';
 import { join } from 'path';
-import { IoAdapter } from '@nestjs/platform-socket.io';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule);
   app.useGlobalInterceptors(new ResponseInterceptor());
   app.useGlobalFilters(new ErrorFilter());
 
@@ -17,10 +16,6 @@ async function bootstrap() {
   );
 
   app.enableCors();
-  app.useWebSocketAdapter(new IoAdapter(app));
-
-  // await app.listen(process.env.PORT ?? 3000, '192.168.1.12');
-  // await app.listen(process.env.PORT ?? 3000, '192.168.43.147');
-  await app.listen(process.env.APP_PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

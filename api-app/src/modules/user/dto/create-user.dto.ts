@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { RoleEnum } from "../enums/role.enum";
+import z from 'zod';
+import { RoleEnum } from '../enums/role.enum';
 
 export const CreateUserSchema = z.object({
   name: z.string(),

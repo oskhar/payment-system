@@ -1,6 +1,6 @@
-import { AbstractEntity } from "src/common/api/entities/abstract.entity";
-import { Column, Entity } from "typeorm";
-import { RoleEnum } from "../enums/role.enum";
+import { Column, Entity } from 'typeorm';
+import { RoleEnum } from '../enums/role.enum';
+import { AbstractEntity } from 'src/common/api/entities/abstract.entity';
 
 @Entity('users')
 export class User extends AbstractEntity<User> {
@@ -16,6 +16,6 @@ export class User extends AbstractEntity<User> {
   @Column()
   email: string;
 
-  @Column({ type: "enum", enum: RoleEnum })
-  role: RoleEnum
+  @Column({ type: 'enum', enum: RoleEnum })
+  role: RoleEnum;
 }
