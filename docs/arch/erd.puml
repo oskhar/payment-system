@@ -9,170 +9,128 @@
 ' 5. Penambahan struktur PURCHASE (Pemesanan Pembelian) untuk melengkapi alur masuk barang secara profesional.
 ' --
 
-' ===================================
-' ====== CORE PRODUCT & UNITS =======
-' ===================================
-entity "categories" as cat {
-  id : integer <<PK>>
-  name : varchar
-  --
-  created_at : datetime
-  updated_at : datetime
+package "products domain" {
+  entity "categories" as cat {
+    id : integer <<PK>>
+    name : varchar
+    --
+    created_at : datetime
+    updated_at : datetime
+  }
+
+  entity "items" as i {
+    id : integer <<PK>>
+    name : varchar
+    barcode : varchar
+    description : text
+    image_url : varchar
+    **base_unit_id : integer <<FK>>** '-- Wajib: Satuan dasar untuk kalkulasi stok (cth: pcs)
+    --
+    created_at : datetime
+    updated_at : datetime
+  }
+
+  entity "item_category" as ic {
+    item_id : integer <<PK>> <<FK>>
+    category_id : integer <<PK>> <<FK>>
+  }
+
+  entity "item_units" as iu {
+    id: integer <<PK>>
+    item_id : integer <<FK>>
+    unit_id : integer <<FK>>
+    --
+    **conversion_to_base : decimal** '-- Faktor konversi ke base_unit. Cth: 1 dus = 40 pcs, maka isinya 40. Untuk pcs itu sendiri, isinya 1.
+    price : decimal '-- Harga JUAL untuk unit ini
+    cost : decimal '-- Harga MODAL/BELI untuk unit ini
+    is_for_sale : boolean '-- Apakah unit ini bisa dijual? (cth: Dus)
+    is_for_purchase : boolean '-- Apakah unit ini bisa dibeli? (cth: Pcs mungkin tidak bisa dibeli dari supplier)
+  }
+
+  entity "units" as u {
+    id : integer <<PK>>
+    name : varchar
+    abbreviation : varchar
+    --
+    created_at : datetime
+    updated_at : datetime
+  }
 }
 
-entity "items" as i {
-  id : integer <<PK>>
-  name : varchar
-  barcode : varchar
-  description : text
-  image_url : varchar
-  **base_unit_id : integer <<FK>>** '-- Wajib: Satuan dasar untuk kalkulasi stok (cth: pcs)
-  --
-  created_at : datetime
-  updated_at : datetime
-}
+package "inventory domain" {
+  entity "branches" as b {
+    id : integer <<PK>>
+    name : varchar
+    address : text
+    image_url : varchar
+    --
+    created_at : datetime
+    updated_at : datetime
+  }
 
-entity "item_category" as ic {
-  item_id : integer <<PK>> <<FK>>
-  category_id : integer <<PK>> <<FK>>
-}
+  ' Best Practice: Tabel ringkasan untuk cek stok cepat
+  entity "item_stock_summary" as iss {
+    item_id : integer <<PK>> <<FK>>
+    branch_id : integer <<PK>> <<FK>>
+    --
+    **quantity_in_base_unit : decimal** '-- Stok terkini dalam satuan dasar
+    last_updated_at : datetime
+  }
 
-entity "units" as u {
-  id : integer <<PK>>
-  name : varchar
-  abbreviation : varchar
-  --
-  created_at : datetime
-  updated_at : datetime
-}
-
-' Tabel ini adalah JANTUNG dari manajemen unit & harga
-entity "item_units" as iu {
-  id: integer <<PK>>
-  item_id : integer <<FK>>
-  unit_id : integer <<FK>>
-  --
-  **conversion_to_base : decimal** '-- Faktor konversi ke base_unit. Cth: 1 dus = 40 pcs, maka isinya 40. Untuk pcs itu sendiri, isinya 1.
-  price : decimal '-- Harga JUAL untuk unit ini
-  cost : decimal '-- Harga MODAL/BELI untuk unit ini
-  is_for_sale : boolean '-- Apakah unit ini bisa dijual? (cth: Dus)
-  is_for_purchase : boolean '-- Apakah unit ini bisa dibeli? (cth: Pcs mungkin tidak bisa dibeli dari supplier)
-}
-
-
-' ===================================
-' ========= INVENTORY (STOK) ========
-' ===================================
-entity "branches" as b {
-  id : integer <<PK>>
-  name : varchar
-  address : text
-  image_url : varchar
-  --
-  created_at : datetime
-  updated_at : datetime
-}
-
-' Best Practice: Tabel ringkasan untuk cek stok cepat
-entity "item_stock_summary" as iss {
-  item_id : integer <<PK>> <<FK>>
-  branch_id : integer <<PK>> <<FK>>
-  --
-  **quantity_in_base_unit : decimal** '-- Stok terkini dalam satuan dasar
-  last_updated_at : datetime
-}
-
-' Best Practice: Buku besar semua transaksi stok (untuk audit)
-entity "stock_ledger" as sl {
-  id : integer <<PK>>
-  item_id : integer <<FK>>
-  branch_id : integer <<FK>>
-  --
-  **quantity_change : decimal** '-- Perubahan stok (+/-) SELALU dalam satuan dasar
-  **final_quantity : decimal** '-- Stok akhir setelah transaksi ini (untuk verifikasi)
-  type : varchar '-- SALE, PURCHASE, ADJUSTMENT, RETURN, TRANSFER
-  reference_id : varchar '-- ID dari transaksi, PO, atau form adjustment
-  description : text
-  --
-  created_at : datetime
+  ' Best Practice: Buku besar semua transaksi stok (untuk audit)
+  entity "stock_ledger" as sl {
+    id : integer <<PK>>
+    item_id : integer <<FK>>
+    branch_id : integer <<FK>>
+    --
+    **quantity_change : decimal** '-- Perubahan stok (+/-) SELALU dalam satuan dasar
+    **final_quantity : decimal** '-- Stok akhir setelah transaksi ini (untuk verifikasi)
+    type : varchar '-- STOCK_IN, STOCK_OUT
+    description : text
+    --
+    created_at : datetime
+  }
 }
 
 ' ===================================
 ' ======== SALES (PENJUALAN) ========
 ' ===================================
-entity "users" as usr {
-  id : integer <<PK>>
-  name : varchar
-  email : varchar
-  whatsapp : varchar
-  password_hash : varchar
-  role : varchar
-  branch_id: integer <<FK>>
-  --
-  created_at : datetime
-  updated_at : datetime
-}
-
-entity "transactions" as t {
-  id : integer <<PK>>
-  transaction_number : varchar
-  user_id : integer <<FK>>
-  branch_id : integer <<FK>>
-  payment_method : varchar
-  total_amount: decimal
-  --
-  created_at : datetime
-}
-
-entity "transaction_items" as ti {
-  id: integer <<PK>>
-  transaction_id : integer <<FK>>
-  item_id : integer <<FK>>
-  **item_unit_id : integer <<FK>>** '-- FK ke item_units, mencatat unit & harga saat transaksi
-  --
-  quantity : decimal '-- Kuantitas dalam unit yang dijual (cth: 2)
-  price_per_unit : decimal '-- Harga per unit saat transaksi (cth: harga per dus)
-  total_price : decimal
-}
-
-' ===================================
-' ====== PURCHASING (PEMBELIAN) =====
-' ===================================
-entity "suppliers" as sup {
-  id: integer <<PK>>
-  name: varchar
-  contact_person: varchar
-  phone: varchar
-  address: text
-  --
-  created_at: datetime
-  updated_at: datetime
-}
-
-entity "purchase_orders" as po {
-    id: integer <<PK>>
-    po_number: varchar
-    supplier_id: integer <<FK>>
+package "sales domain" {
+  entity "users" as usr {
+    id : integer <<PK>>
+    name : varchar
+    email : varchar
+    whatsapp : varchar
+    password_hash : varchar
+    role : varchar
     branch_id: integer <<FK>>
-    status: varchar '-- DRAFT, SUBMITTED, COMPLETED, CANCELLED
-    notes: text
     --
-    created_at: datetime
-    submitted_at: datetime
-    completed_at: datetime
-}
+    created_at : datetime
+    updated_at : datetime
+  }
 
-entity "purchase_order_items" as poi {
+  entity "transactions" as t {
+    id : integer <<PK>>
+    transaction_number : varchar
+    user_id : integer <<FK>>
+    branch_id : integer <<FK>>
+    payment_method : varchar
+    total_amount: decimal
+    --
+    created_at : datetime
+  }
+
+  entity "transaction_items" as ti {
     id: integer <<PK>>
-    purchase_order_id: integer <<FK>>
-    item_id: integer <<FK>>
-    **item_unit_id : integer <<FK>>** '-- FK ke item_units, mencatat unit & harga beli
+    transaction_id : integer <<FK>>
+    item_id : integer <<FK>>
+    **item_unit_id : integer <<FK>>** '-- FK ke item_units, mencatat unit & harga saat transaksi
     --
-    quantity: decimal '-- Kuantitas dalam unit yang dibeli
-    cost_per_unit: decimal '-- Harga beli per unit
-    total_cost: decimal
+    quantity : decimal '-- Kuantitas dalam unit yang dijual (cth: 2)
+    price_per_unit : decimal '-- Harga per unit saat transaksi (cth: harga per dus)
+    total_price : decimal
+  }
 }
-
 
 ' ===================================
 ' =========== RELATIONSHIPS =========
@@ -197,13 +155,6 @@ t }o-- b
 t ||--o{ ti
 i --{ ti
 iu --{ ti
-
-' Purchasing Relationships
-sup --o{ po
-po ||--o{ poi
-b --{ po
-i --{ poi
-iu --{ poi
 
 ' User-Branch Relationship
 usr }o-- b
