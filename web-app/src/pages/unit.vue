@@ -29,8 +29,7 @@ const fetchUnits = async () => {
     units.value = response.data.data.units || []
 
     console.log('Units:', response.data)
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Gagal mengambil data unit:', error)
     Swal.fire('Error', 'Gagal memuat data unit.', 'error')
   }
@@ -41,8 +40,7 @@ const addUnit = async () => {
   try {
     // Validasi form sebelum mengirim data
     const { valid } = await formRef.value!.validate()
-    if (!valid)
-      return
+    if (!valid) return
 
     // Mengirim POST request dengan nama dan kode unit baru
     const response = await axios.post(`${import.meta.env.VITE_API_URL}/unit`, {
@@ -67,8 +65,7 @@ const addUnit = async () => {
 
     // Ambil data terbaru dari server
     await fetchUnits()
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Gagal menambah unit:', error)
     Swal.fire('Gagal', 'Unit tidak bisa ditambahkan.', 'error')
   }
@@ -95,8 +92,7 @@ const deleteUnit = async (ids: number[]) => {
       await axios.delete(`${import.meta.env.VITE_API_URL}/unit`, { data: { ids } })
       Swal.fire('Terhapus!', 'Unit berhasil dihapus.', 'success')
       await fetchUnits()
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Gagal menghapus unit:', error)
       Swal.fire('Gagal', 'Unit tidak bisa dihapus.', 'error')
     }
@@ -113,9 +109,7 @@ onMounted(() => {
 <template>
   <VCard class="mt-6">
     <VCardTitle class="pa-5 d-flex justify-space-between align-center">
-      <div class="text-h5">
-        Manajemen Satuan Unit
-      </div>
+      <div class="text-h5">Manajemen Satuan Unit</div>
       <VBtn
         color="primary"
         prepend-icon="ri-add-line"
@@ -130,19 +124,11 @@ onMounted(() => {
       <VTable density="comfortable">
         <thead>
           <tr>
-            <th class="text-left">
-              NO
-            </th>
-            <th class="text-left">
-              Nama Unit
-            </th>
-            <th class="text-left">
-              Kode Unit
-            </th>
+            <th class="text-left">NO</th>
+            <th class="text-left">Nama Unit</th>
+            <th class="text-left">Kode Unit</th>
             <!-- Kolom baru -->
-            <th class="text-center">
-              Aksi
-            </th>
+            <th class="text-center">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -163,7 +149,7 @@ onMounted(() => {
           >
             <td>{{ index + 1 }}</td>
             <td>{{ unit.name }}</td>
-            <td>{{ unit.code }}</td>
+            <td>{{ unit.abbreviation }}</td>
             <!-- Menampilkan data 'code' -->
             <td class="text-center">
               <VBtn
@@ -191,9 +177,7 @@ onMounted(() => {
         ref="formRef"
         @submit.prevent="addUnit"
       >
-        <VCardTitle class="pa-4">
-          Tambah Unit Baru
-        </VCardTitle>
+        <VCardTitle class="pa-4"> Tambah Unit Baru </VCardTitle>
         <VCardText class="pb-2">
           <VTextField
             v-model="name"

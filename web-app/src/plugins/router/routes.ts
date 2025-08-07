@@ -33,8 +33,12 @@ export const routes = [
         component: () => import('@/pages/unit.vue'),
       },
       {
-        path: 'stock-item',
-        component: () => import('@/pages/stock-item.vue'),
+        path: 'stock',
+        component: () => import('@/pages/stock.vue'),
+      },
+      {
+        path: 'stock-opname',
+        component: () => import('@/pages/stock-opname.vue'),
       },
       {
         path: 'typography',

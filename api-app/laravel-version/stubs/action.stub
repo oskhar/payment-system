@@ -1,0 +1,21 @@
+<?php
+
+namespace {{ namespace }};
+
+use Illuminate\Http\JsonResponse;
+use Lorisleiva\Actions\Concerns\AsAction;
+
+class {{ class }}
+{
+    use AsAction;
+
+    public function handle(): JsonResponse
+    {
+        // ...
+    }
+
+    public function asController(): JsonResponse
+    {
+        return $this->handle();
+    }
+}

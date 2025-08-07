@@ -4,7 +4,7 @@
 ' -- Penjelasan Perubahan Best Practice --
 ' 1. ITEMS memiliki "base_unit_id" sebagai satuan dasar wajib untuk kalkulasi stok.
 ' 2. ITEM_UNITS (menggantikan item_prices) adalah tabel pusat yang menyimpan harga JUAL/BELI per unit DAN faktor konversi ke satuan dasar.
-' 3. STOCK_LEDGER adalah buku besar (wajib audit) yang mencatat SEMUA pergerakan stok dalam SATUAN DASAR.
+' 3. STOCK adalah buku besar (wajib audit) yang mencatat SEMUA pergerakan stok dalam SATUAN DASAR.
 ' 4. ITEM_STOCK_SUMMARY adalah tabel ringkasan untuk performa query stok yang sangat cepat.
 ' 5. Penambahan struktur PURCHASE (Pemesanan Pembelian) untuk melengkapi alur masuk barang secara profesional.
 ' --
@@ -62,29 +62,18 @@ package "inventory domain" {
     id : integer <<PK>>
     name : varchar
     address : text
-    image_url : varchar
     --
     created_at : datetime
     updated_at : datetime
   }
 
-  ' Best Practice: Tabel ringkasan untuk cek stok cepat
-  entity "item_stock_summary" as iss {
-    item_id : integer <<PK>> <<FK>>
-    branch_id : integer <<PK>> <<FK>>
-    --
-    **quantity_in_base_unit : decimal** '-- Stok terkini dalam satuan dasar
-    last_updated_at : datetime
-  }
-
   ' Best Practice: Buku besar semua transaksi stok (untuk audit)
-  entity "stock_ledger" as sl {
+  entity "stocks" as sl {
     id : integer <<PK>>
     item_id : integer <<FK>>
     branch_id : integer <<FK>>
     --
     **quantity_change : decimal** '-- Perubahan stok (+/-) SELALU dalam satuan dasar
-    **final_quantity : decimal** '-- Stok akhir setelah transaksi ini (untuk verifikasi)
     type : varchar '-- STOCK_IN, STOCK_OUT
     description : text
     --
@@ -143,11 +132,8 @@ u --{ iu
 i --right- u : "has base unit >"
 
 ' Inventory Relationships
-i ||--o{ iss
-b ||--o{ iss
 sl }o-- i
 sl }o-- b
-iss -- sl : "updated by >"
 
 ' Sales Relationships
 t }o-- usr

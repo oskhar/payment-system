@@ -4,24 +4,38 @@ import axios from 'axios'
 import Swal from 'sweetalert2'
 
 // =================================================================
+// Props
+// =================================================================
+const props = defineProps<{
+  items: Item[] // List of items to populate the item selection dropdown
+}>()
+
+const branch = JSON.parse(localStorage.getItem('selectedBranch'))
+const namaToko = branch.name
+
+// =================================================================
 // Type Definitions
 // =================================================================
 interface Stock {
   id: number
   item_id: number
-  item_name: string // Assuming we will get item name from the backend for display
+  item_name: string
   transaction_number: string
   type: 'in' | 'out'
   description: string | null
   quantity: number
-  created_at: string // Use string for date to display easily, format later
+  created_at: string
 }
 
 interface Item {
   id: number
   name: string
+}
 
-  // Add other item properties if needed, but 'name' and 'id' are essential for dropdown
+// Interface for units associated with an item
+interface Unit {
+  id: number
+  name: string
 }
 
 interface StockHeader {
@@ -31,29 +45,27 @@ interface StockHeader {
 }
 
 // =================================================================
-// Props
-// =================================================================
-const props = defineProps<{
-  items: Item[] // List of items to populate the item selection dropdown
-}>()
-
-// =================================================================
 // Reactive State
 // =================================================================
 const stocks = ref<Stock[]>([])
 const isLoadingStocks = ref(false)
 const dialogAddStock = ref(false)
 const isSubmittingStock = ref(false)
-const selectedStockIds = ref<number[]>([]) // For deleting multiple stocks
+const selectedStockIds = ref<number[]>([])
+
+// State for dynamic units
+const availableUnits = ref<Unit[]>([])
+const isLoadingUnits = ref(false)
 
 const formAddStock = ref({
   item_id: null as number | null,
+  unit_id: null as number | null, // Added for unit selection
   type: 'in' as 'in' | 'out',
   quantity: 0,
   description: '',
 })
 
-// Data table headers
+// Data table headers - Added 'Unit' column
 const stockHeaders: StockHeader[] = [
   { title: 'Item', key: 'item_name' },
   { title: 'Nomor Transaksi', key: 'transaction_number' },
@@ -73,10 +85,11 @@ const fetchStocks = async () => {
   try {
     const response = await axios.get(`${import.meta.env.VITE_API_URL}/stock`)
 
-    stocks.value = response.data.data.map((stock: any) => ({
+    // Assuming the /stock endpoint now returns unit information (e.g., unit_name)
+    stocks.value = response.data.data.stocks.map((stock: any) => ({
       ...stock,
-      item_name: props.items.find(item => item.id === stock.item_id)?.name || 'Unknown Item',
-      created_at: new Date(stock.created_at).toLocaleString(), // Format date for display
+      item_name: stock.item.name || 'Unknown Item',
+      created_at: new Date(stock.created_at).toLocaleString(),
     }))
   }
   catch (error) {
@@ -92,15 +105,50 @@ const fetchStocks = async () => {
   }
 }
 
+// New function to fetch units for a selected item
+const fetchUnitsForItem = async (itemId: number) => {
+  isLoadingUnits.value = true
+  availableUnits.value = []
+  try {
+    // Assumption: Endpoint to get a single item's details (including its units) is /item/{id}
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/item/${itemId}/unit`)
+
+    console.log(response.data.data)
+
+    // Map the response to the Unit interface. Adjust the path (e.g., response.data.item_units) as needed.
+    availableUnits.value = response.data.data.units.map((itemUnit: any) => ({
+      id: itemUnit.id,
+      name: itemUnit.name,
+    }))
+
+    // *** PERUBAHAN DI SINI ***
+    // Secara otomatis pilih unit pertama jika tersedia
+    if (availableUnits.value.length > 0)
+      formAddStock.value.unit_id = availableUnits.value[0].id
+  }
+  catch (error) {
+    console.error(`Gagal mengambil unit untuk item ${itemId}:`, error)
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal Memuat Unit',
+      text: 'Tidak dapat mengambil daftar unit untuk item yang dipilih.',
+    })
+  }
+  finally {
+    isLoadingUnits.value = false
+  }
+}
+
 const submitAddStock = async () => {
   if (isSubmittingStock.value)
     return
 
-  if (!formAddStock.value.item_id || formAddStock.value.quantity <= 0) {
+  // Added validation for unit_id
+  if (!formAddStock.value.item_id || !formAddStock.value.unit_id || formAddStock.value.quantity <= 0) {
     Swal.fire({
       icon: 'warning',
       title: 'Input Tidak Valid',
-      text: 'Mohon lengkapi semua field yang diperlukan dan pastikan kuantitas lebih dari 0.',
+      text: 'Mohon lengkapi Item, Unit, dan pastikan Kuantitas lebih dari 0.',
     })
 
     return
@@ -110,14 +158,15 @@ const submitAddStock = async () => {
   try {
     const payload = {
       type: formAddStock.value.type,
-      quantity: formAddStock.value.quantity,
+      quantity_change: formAddStock.value.quantity,
+      unit_id: formAddStock.value.unit_id, // Include unit_id in the payload
       description: formAddStock.value.description || null,
-      transaction_number: 'auto', // Assuming backend handles this with a default
+      transaction_number: 'auto',
     }
 
-    await axios.post(`${import.meta.env.VITE_API_URL}/item/${formAddStock.value.item_id}/stock`, payload)
+    await axios.post(`${import.meta.env.VITE_API_URL}/item`, payload)
 
-    await fetchStocks() // Refresh stock list
+    await fetchStocks()
     dialogAddStock.value = false
     resetFormAddStock()
 
@@ -171,11 +220,9 @@ const deleteSelectedStocks = async () => {
 
   if (result.isConfirmed) {
     try {
-      // The backend expects an object with 'ids' array
       await axios.delete(`${import.meta.env.VITE_API_URL}/stock`, { data: { ids: selectedStockIds.value } })
-
-      await fetchStocks() // Refresh stock list
-      selectedStockIds.value = [] // Clear selection
+      await fetchStocks()
+      selectedStockIds.value = []
       Swal.fire({
         icon: 'success',
         title: 'Berhasil Dihapus!',
@@ -201,22 +248,39 @@ const deleteSelectedStocks = async () => {
 const resetFormAddStock = () => {
   formAddStock.value = {
     item_id: null,
+    unit_id: null, // Reset unit_id
     type: 'in',
     quantity: 0,
     description: '',
   }
+  availableUnits.value = [] // Clear available units
 }
 
-// Watch for changes in the 'items' prop to re-fetch stocks if necessary
+// =================================================================
+// Watchers
+// =================================================================
+
+// Watch for changes in the selected item_id to fetch its units
+watch(
+  () => formAddStock.value.item_id,
+  newId => {
+    // Reset unit selection when item changes
+    formAddStock.value.unit_id = null
+    availableUnits.value = []
+
+    if (newId)
+      fetchUnitsForItem(newId)
+  },
+)
+
 watch(
   () => props.items,
   async (newItems, oldItems) => {
-    // Only re-fetch if items actually change (e.g., initial load or significant update)
-    if (newItems.length !== oldItems.length || newItems.some((item, index) => item.id !== oldItems[index]?.id))
+    if (newItems.length > 0 && newItems.length !== oldItems.length)
       await fetchStocks()
   },
   { deep: true, immediate: false },
-) // immediate: false because onMounted already fetches initially
+)
 
 // =================================================================
 // Lifecycle Hooks
@@ -230,7 +294,7 @@ onMounted(async () => {
   <VCard>
     <VCardTitle class="d-flex justify-space-between align-center pa-5">
       <h5 class="text-h5">
-        Riwayat Transaksi Stok
+        Riwayat Stok
       </h5>
       <div class="d-flex ga-2">
         <VBtn
@@ -287,7 +351,6 @@ onMounted(async () => {
           </div>
         </template>
 
-        <!-- Custom template for type column to display badges -->
         <template #item.type="{ item }">
           <VChip
             :color="item.type === 'in' ? 'success' : 'error'"
@@ -297,7 +360,6 @@ onMounted(async () => {
           </VChip>
         </template>
 
-        <!-- Custom template for actions column -->
         <template #item.actions="{ item }">
           <VBtn
             icon="ri-delete-bin-line"
@@ -324,7 +386,7 @@ onMounted(async () => {
       <VCard>
         <VForm @submit.prevent="submitAddStock">
           <VCardTitle class="pa-4">
-            Tambah Transaksi Stok Baru
+            Stok Baru - <b class="text-primary">{{ namaToko }}</b>
           </VCardTitle>
 
           <VCardText class="pb-0">
@@ -339,12 +401,27 @@ onMounted(async () => {
               required
             />
 
+            <!-- New VSelect for Units -->
+            <VSelect
+              v-model="formAddStock.unit_id"
+              label="Pilih Unit"
+              :items="availableUnits"
+              item-title="name"
+              item-value="id"
+              class="mb-4"
+              :disabled="!formAddStock.item_id"
+              :loading="isLoadingUnits"
+              clearable
+              required
+              no-data-text="Pilih item terlebih dahulu"
+            />
+
             <VSelect
               v-model="formAddStock.type"
               label="Tipe Transaksi"
               :items="[
-                { title: 'Masuk', value: 'in' },
-                { title: 'Keluar', value: 'out' },
+                { title: 'Stock Masuk', value: 'in' },
+                { title: 'Stock Keluar', value: 'out' },
               ]"
               class="mb-4"
               required

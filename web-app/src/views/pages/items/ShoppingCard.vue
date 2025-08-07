@@ -36,9 +36,9 @@
 
       <!-- Categories -->
       <div v-if="item.categories?.length" class="categories">
-        <VChip v-for="category in item.categories" :key="category.id" class="category-chip" color="secondary"
-          size="small" variant="tonal">
-          {{ category.name }}
+        <VChip v-for="catLink in item.categories" :key="catLink.id" class="category-chip"
+          color="secondary" size="small" variant="tonal">
+          {{ catLink.name }}
         </VChip>
       </div>
     </VCardText>
@@ -105,10 +105,10 @@
                 <div v-for="(unit, index) in form.units" :key="index" class="unit-row mb-4">
                   <div class="d-flex align-center ga-2">
                     <VRadio :value="unit.id" :disabled="!unit.id" class="mt-4" />
-                    <VSelect v-model="unit.id" label="Satuan" :items="units" item-title="name" item-value="id"
+                    <VSelect v-model="unit.id" label="Unit" :items="units" item-title="name" item-value="id"
                       density="compact" hide-details style="min-width: 120px" required />
-                    <VBtn v-if="index > 0" icon="ri-delete-bin-line" variant="text" color="error" size="small"
-                      @click="removeUnit(index)" />
+                    <VBtn v-if="form.units.length > 1" icon="ri-delete-bin-line" variant="text" color="error"
+                      size="small" @click="removeUnit(index)" />
                   </div>
                   <VRow class="pl-12 pt-2">
                     <VCol cols="12" sm="6">
@@ -121,8 +121,8 @@
                     </VCol>
                     <VCol cols="12">
                       <VTextField v-model.number="unit.conversion_to_base" label="Konversi ke Satuan Dasar"
-                        type="number" :disabled="index === 0" density="compact"
-                        :hint="index === 0 ? 'Satuan pertama adalah acuan dasar (nilai 1)' : ''" persistent-hint
+                        type="number" :disabled="unit.id === form.base_unit_id" density="compact"
+                        :hint="unit.id === form.base_unit_id ? 'Satuan dasar selalu bernilai 1' : ''" persistent-hint
                         required />
                     </VCol>
                   </VRow>
@@ -185,39 +185,61 @@
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted } from 'vue'
 import Swal from 'sweetalert2'
-import axios from 'axios'
+import api from '@/api'
 
 // =================================================================
 // Type Definitions
+// [UBAH] Menyesuaikan interface agar cocok dengan data JSON dari API
 // =================================================================
+interface Unit {
+  id: number
+  name: string
+  abbreviation: string
+}
+
 interface Category {
   id: number
   name: string
 }
 
-interface Unit {
+interface ItemCategoryLink {
   id: number
-  name: string
+  item_id: number
+  category_id: number
+  category: Category
 }
 
 interface ItemUnit {
-  id: number
+  id: number // Ini adalah ID dari relasi item_unit
+  item_id: number
+  unit_id: number
+  unit: Unit
+  conversion_to_base: number
   price: number
   cost: number
-  conversion_to_base: number
-  unit: Unit // Relasi ke detail satuan
 }
 
 interface Item {
   id: number
-  image_url: string
   name: string
   barcode: string
-  stock: number
-  categories: Category[]
   description: string
-  units: ItemUnit[] // Mengganti item_prices
-  base_unit_id: number // ID satuan dasar
+  image_url: string
+  stock: number
+  price: number // Harga jual satuan dasar
+  cost: number // Harga beli satuan dasar
+  base_unit_id: number
+  base_unit: Unit
+  categories: ItemCategoryLink[]
+  item_units: ItemUnit[]
+}
+
+// [UBAH] Interface untuk data unit di dalam form edit
+interface FormUnit {
+  id: number | null // Ini adalah ID dari Unit (bukan ItemUnit)
+  price: number
+  cost: number
+  conversion_to_base: number
 }
 
 // =================================================================
@@ -247,7 +269,7 @@ const form = reactive({
   barcode: '',
   description: '',
   selectedCategories: [] as number[],
-  units: [] as Partial<ItemUnit>[],
+  units: [] as FormUnit[], // [UBAH] Menggunakan interface FormUnit
   base_unit_id: null as number | null,
   imageFile: null as File[] | null,
 })
@@ -267,12 +289,13 @@ const units = ref<Unit[]>([]) // Untuk VSelect
 // Computed Properties
 // =================================================================
 
+// [FIX] Memperbaiki cara mencari base unit dari array item_units
 const baseUnit = computed(() => {
-  // [FIX] Add a guard clause to prevent error if units array is not present.
-  if (!props.item || !Array.isArray(props.item.units)) {
+  if (!props.item || !Array.isArray(props.item.item_units)) {
     return undefined
   }
-  return props.item.units.find(u => u.id === props.item.base_unit_id)
+  // Mencari di item_units dimana unit_id sama dengan base_unit_id
+  return props.item.item_units.find(iu => iu.unit.id === props.item.base_unit_id)
 })
 
 const formattedBasePrice = computed(() => {
@@ -281,8 +304,9 @@ const formattedBasePrice = computed(() => {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price)
 })
 
+// [FIX] Mengambil nama dari nested object unit
 const baseUnitName = computed(() => {
-  return baseUnit.value?.unit.name || ''
+  return props.item.base_unit?.name || ''
 })
 
 const isAllCategoriesSelected = computed(() => {
@@ -294,20 +318,29 @@ const isAllCategoriesSelected = computed(() => {
 // =================================================================
 
 const openItemFormDialog = () => {
-  // Populate form with existing item data for editing
-  console.log(props.item)
-  form.name = props.item.name
-  form.barcode = props.item.barcode
-  form.selectedCategories = props.item.item_categories.map(c => c.id)
-  form.description = props.item.description || ''
-  form.base_unit_id = props.item.base_unit_id
+  // [FIX] Memetakan data dari props ke form dengan benar
+  const { item } = props
 
-  // Deep copy units untuk menghindari mutasi props
-  form.units = JSON.parse(JSON.stringify(props.item.units || []))
+  form.name = item.name
+  form.barcode = item.barcode
+  form.description = item.description || ''
+  form.base_unit_id = item.base_unit_id
 
-  // Pastikan unit pertama memiliki konversi 1 dan non-aktif
-  if (form.units.length > 0) {
-    form.units[0].conversion_to_base = 1
+  // 1. Memetakan kategori dari categories
+  form.selectedCategories = item.categories.map(catLink => catLink.id)
+
+  // 2. Memetakan unit dari item_units ke struktur yang dibutuhkan form
+  form.units = item.item_units.map(itemUnit => ({
+    id: itemUnit.unit.id, // ID untuk VSelect adalah ID dari unit itu sendiri
+    price: itemUnit.price,
+    cost: itemUnit.cost,
+    conversion_to_base: itemUnit.conversion_to_base,
+  }))
+
+  // Pastikan unit dasar memiliki konversi 1 dan non-aktif
+  const baseUnitInForm = form.units.find(u => u.id === form.base_unit_id)
+  if (baseUnitInForm) {
+    baseUnitInForm.conversion_to_base = 1
   }
 
   form.imageFile = null // Reset file input
@@ -332,10 +365,13 @@ const addUnit = () => {
 }
 
 const removeUnit = (index: number) => {
-  if (index > 0) {
-    // Cegah penghapusan unit pertama (dasar)
-    form.units.splice(index, 1)
+  const unitToRemove = form.units[index]
+  // Cegah penghapusan unit dasar
+  if (unitToRemove.id === form.base_unit_id) {
+    Swal.fire('Aksi Ditolak', 'Tidak dapat menghapus satuan yang menjadi acuan dasar.', 'warning')
+    return
   }
+  form.units.splice(index, 1)
 }
 
 const toggleSelectAllCategories = () => {
@@ -382,7 +418,7 @@ const submitItemForm = async () => {
     }
 
     // Gunakan POST, karena FormData dengan PUT tidak selalu didukung penuh
-    await axios.post(`${import.meta.env.VITE_API_URL}/item/${props.item.id}`, formData, {
+    await api.post(`/item/${props.item.id}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
 
@@ -406,7 +442,7 @@ const submitRestockForm = async () => {
       description: restockForm.description,
       quantity: restockForm.quantity,
     }
-    const res = await axios.post(`${import.meta.env.VITE_API_URL}/item/${props.item.id}/stock`, payload)
+    const res = await api.post(`/item/${props.item.id}/stock`, payload)
 
     if (res.data.status) {
       emit('updated')
@@ -440,7 +476,7 @@ const handleDeleteItem = async () => {
 
   if (result.isConfirmed) {
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/item`, { data: { ids: [props.item.id] } })
+      await api.delete(`/item`, { data: { ids: [props.item.id] } })
       Swal.fire('Terhapus!', 'Item berhasil dihapus.', 'success')
       emit('updated')
     } catch (err) {
@@ -452,10 +488,7 @@ const handleDeleteItem = async () => {
 
 const fetchInitialData = async () => {
   try {
-    const [categoriesRes, unitsRes] = await Promise.all([
-      axios.get(`${import.meta.env.VITE_API_URL}/category`),
-      axios.get(`${import.meta.env.VITE_API_URL}/unit`),
-    ])
+    const [categoriesRes, unitsRes] = await Promise.all([api.get(`/category`), api.get(`/unit`)])
 
     if (Array.isArray(categoriesRes.data.data)) {
       categories.value = categoriesRes.data.data

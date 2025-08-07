@@ -3,6 +3,13 @@ import { useDisplay } from 'vuetify'
 import VerticalNav from '@layouts/components/VerticalNav.vue'
 
 export default defineComponent({
+  // Menambahkan props untuk menerima status visibilitas dari komponen induk
+  props: {
+    isNavVisible: {
+      type: Boolean,
+      default: true,
+    },
+  },
   setup(props, { slots }) {
     const isOverlayNavActive = ref(false)
     const isLayoutOverlayVisible = ref(false)
@@ -29,19 +36,15 @@ export default defineComponent({
       )
 
       // 👉 Navbar
-      const navbar = h(
-        'header',
-        { class: ['layout-navbar navbar-blur'] },
-        [
-          h(
-            'div',
-            { class: 'navbar-content-container' },
-            slots.navbar?.({
-              toggleVerticalOverlayNavActive: toggleIsOverlayNavActive,
-            }),
-          ),
-        ],
-      )
+      const navbar = h('header', { class: ['layout-navbar navbar-blur'] }, [
+        h(
+          'div',
+          { class: 'navbar-content-container' },
+          slots.navbar?.({
+            toggleVerticalOverlayNavActive: toggleIsOverlayNavActive,
+          }),
+        ),
+      ])
 
       const main = h(
         'main',
@@ -50,26 +53,17 @@ export default defineComponent({
       )
 
       // 👉 Footer
-      const footer = h(
-        'footer',
-        { class: 'layout-footer' },
-        [
-          h(
-            'div',
-            { class: 'footer-content-container' },
-            slots.footer?.(),
-          ),
-        ],
-      )
+      const footer = h('footer', { class: 'layout-footer' }, [
+        h('div', { class: 'footer-content-container' }, slots.footer?.()),
+      ])
 
       // 👉 Overlay
-      const layoutOverlay = h(
-        'div',
-        {
-          class: ['layout-overlay', { visible: isLayoutOverlayVisible.value }],
-          onClick: () => { isLayoutOverlayVisible.value = !isLayoutOverlayVisible.value },
+      const layoutOverlay = h('div', {
+        class: ['layout-overlay', { visible: isLayoutOverlayVisible.value }],
+        onClick: () => {
+          isLayoutOverlayVisible.value = !isLayoutOverlayVisible.value
         },
-      )
+      })
 
       return h(
         'div',
@@ -78,21 +72,13 @@ export default defineComponent({
             'layout-wrapper layout-nav-type-vertical layout-navbar-static layout-footer-static layout-content-width-fluid',
             mdAndDown.value && 'layout-overlay-nav',
             route.meta.layoutWrapperClasses,
+
+            // Secara dinamis menambahkan kelas 'layout-vertical-nav-collapsed'
+            // ketika isNavVisible (dari prop) adalah false.
+            !props.isNavVisible && 'layout-vertical-nav-collapsed',
           ],
         },
-        [
-          verticalNav,
-          h(
-            'div',
-            { class: 'layout-content-wrapper' },
-            [
-              navbar,
-              main,
-              footer,
-            ],
-          ),
-          layoutOverlay,
-        ],
+        [verticalNav, h('div', { class: 'layout-content-wrapper' }, [navbar, main, footer]), layoutOverlay],
       )
     }
   },
@@ -100,9 +86,9 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-@use "@configured-variables" as variables;
-@use "@layouts/styles/placeholders";
-@use "@layouts/styles/mixins";
+@use '@configured-variables' as variables;
+@use '@layouts/styles/placeholders';
+@use '@layouts/styles/mixins';
 
 .layout-wrapper.layout-nav-type-vertical {
   // TODO(v2): Check why we need height in vertical nav & min-height in horizontal nav

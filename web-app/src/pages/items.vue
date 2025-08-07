@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
-import axios from 'axios'
 import Swal from 'sweetalert2'
+import api from '@/api'
 
 // Local Components
 import ShoppingCard from '@/views/pages/items/ShoppingCard.vue'
-import StockTable from '@/views/pages/items/StockTable.vue'
 
 // =================================================================
 // Type Definitions
@@ -41,9 +40,18 @@ interface FormUnit {
   conversion_to_base: number
 }
 
+interface Branch {
+  id: number
+  name: string
+}
+
 // =================================================================
 // Reactive State
 // =================================================================
+
+// --- Branch State ---
+
+const branch = ref<Branch>(JSON.parse(localStorage.getItem('selectedBranch')))
 
 // --- Item State ---
 const items = ref<Item[]>([])
@@ -89,8 +97,7 @@ const isAllCategoriesSelected = computed(() => {
 })
 
 const filteredItems = computed(() => {
-  if (!searchQuery.value)
-    return items.value
+  if (!searchQuery.value) return items.value
 
   const lowerCaseQuery = searchQuery.value.toLowerCase()
 
@@ -112,7 +119,7 @@ const fetchItems = async () => {
       // page: pagination.currentPage,
     }
 
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/item`, { params })
+    const response = await api.get('item', { params: { ...params, branch_id: branch.value.id } })
 
     items.value = response.data.data.items.map((item: any) => ({
       ...item,
@@ -120,34 +127,30 @@ const fetchItems = async () => {
     }))
 
     // pagination.totalPages = response.data.data.totalPages;
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Gagal mengambil data item:', error)
     Swal.fire({
       icon: 'error',
       title: 'Gagal Memuat Item',
       text: 'Terjadi kesalahan saat mengambil data item.',
     })
-  }
-  finally {
+  } finally {
     isLoadingItems.value = false
   }
 }
 
 const fetchCategories = async () => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/category`)
+    const response = await api.get('category')
 
     // Pastikan data yang diterima adalah array
-    if (Array.isArray(response.data.data)) {
-      categories.value = response.data.data
-    }
-    else {
+    if (Array.isArray(response.data.data?.categories || response.data.data)) {
+      categories.value = response.data.data?.categories || response.data.data
+    } else {
       console.error('Data kategori yang diterima bukan array:', response.data.data)
       categories.value = []
     }
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Gagal mengambil data kategori:', error)
   }
 }
@@ -155,19 +158,17 @@ const fetchCategories = async () => {
 // [UBAH] Fungsi untuk mengambil data satuan dengan perbaikan
 const fetchUnits = async () => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/unit`)
+    const response = await api.get('unit')
     const unitsData = response.data.data?.units || response.data.data
 
     // [FIX] Pastikan data yang diterima adalah array untuk VSelect
     if (Array.isArray(unitsData)) {
       units.value = unitsData
-    }
-    else {
+    } else {
       console.error('Data satuan yang diterima bukan array:', unitsData)
       units.value = [] // Set ke array kosong untuk menghindari error render
     }
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Gagal mengambil data satuan:', error)
     units.value = [] // Set ke array kosong jika terjadi error
   }
@@ -178,8 +179,7 @@ const fetchUnits = async () => {
 // =================================================================
 
 const toggleSelectAllCategories = () => {
-  if (isAllCategoriesSelected.value)
-    selectedCategories.value = []
+  if (isAllCategoriesSelected.value) selectedCategories.value = []
   else selectedCategories.value = categories.value.map(c => c.id)
 }
 
@@ -193,8 +193,7 @@ const addCategory = async () => {
     reverseButtons: true,
     confirmButtonText: 'Tambah',
     inputValidator: value => {
-      if (!value)
-        return 'Nama kategori tidak boleh kosong!'
+      if (!value) return 'Nama kategori tidak boleh kosong!'
     },
     customClass: {
       confirmButton:
@@ -206,7 +205,7 @@ const addCategory = async () => {
 
   if (categoryName) {
     try {
-      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/category`, { name: categoryName })
+      const { data } = await api.post('category', { name: categoryName })
 
       categories.value.push(data.data)
       Swal.fire({
@@ -216,8 +215,7 @@ const addCategory = async () => {
         timer: 2000,
         showConfirmButton: false,
       })
-    }
-    catch (error: any) {
+    } catch (error: any) {
       Swal.fire({
         icon: 'error',
         title: 'Gagal Menambahkan',
@@ -233,8 +231,7 @@ const addCategory = async () => {
 
 const handleFileUpload = (event: Event) => {
   const target = event.target as HTMLInputElement
-  if (target.files)
-    formAddItem.image = target.files[0]
+  if (target.files) formAddItem.image = target.files[0]
 }
 
 // [UBAH] Mengganti fungsi `addPriceTier` menjadi `addUnit`
@@ -249,8 +246,7 @@ const removeUnit = (index: number) => {
     const removedUnitId = formAddItem.units[index].id
 
     // Jika satuan yang dihapus adalah base_unit, reset base_unit_id ke satuan pertama
-    if (removedUnitId && removedUnitId === formAddItem.base_unit_id)
-      formAddItem.base_unit_id = formAddItem.units[0].id
+    if (removedUnitId && removedUnitId === formAddItem.base_unit_id) formAddItem.base_unit_id = formAddItem.units[0].id
 
     formAddItem.units.splice(index, 1)
   }
@@ -267,8 +263,7 @@ const resetForm = () => {
   formAddItem.base_unit_id = null
 
   const fileInput = document.getElementById('file-input') as HTMLInputElement
-  if (fileInput)
-    fileInput.value = ''
+  if (fileInput) fileInput.value = ''
 }
 
 const closeAndResetDialog = () => {
@@ -278,8 +273,7 @@ const closeAndResetDialog = () => {
 
 // [UBAH] Menyesuaikan fungsi submit form dengan skema baru
 const submitForm = async () => {
-  if (isSubmitting.value)
-    return
+  if (isSubmitting.value) return
 
   // Validasi sederhana
   if (!formAddItem.base_unit_id) {
@@ -321,11 +315,10 @@ const submitForm = async () => {
     })
 
   // File gambar (jika ada)
-  if (formAddItem.image)
-    formData.append('image', formAddItem.image)
+  if (formAddItem.image) formData.append('image', formAddItem.image)
 
   try {
-    await axios.post(`${import.meta.env.VITE_API_URL}/item`, formData, {
+    await api.post('item', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -341,16 +334,14 @@ const submitForm = async () => {
       timer: 2000,
       showConfirmButton: false,
     })
-  }
-  catch (error: any) {
+  } catch (error: any) {
     console.error('Error submitting form:', error)
     Swal.fire({
       icon: 'error',
       title: 'Gagal Menambahkan Item',
       text: error.response?.data?.message || 'Terjadi kesalahan pada server.',
     })
-  }
-  finally {
+  } finally {
     isSubmitting.value = false
   }
 }
@@ -389,8 +380,8 @@ const deleteSelectedItems = async () => {
         ids: selectedItemsForDeletion.value,
       }
 
-      // Kirim request DELETE dengan payload di dalam body (properti 'data' di axios)
-      await axios.delete(`${import.meta.env.VITE_API_URL}/item`, {
+      // Kirim request DELETE dengan payload di dalam body (properti 'data' di api)
+      await api.delete('item', {
         data: payload,
       })
 
@@ -405,8 +396,7 @@ const deleteSelectedItems = async () => {
       // Muat ulang daftar item dan kosongkan pilihan
       await fetchItems()
       selectedItemsForDeletion.value = []
-    }
-    catch (error: any) {
+    } catch (error: any) {
       console.error('Gagal menghapus item:', error)
       Swal.fire({
         icon: 'error',
@@ -424,8 +414,7 @@ const deleteSelectedItems = async () => {
 watch(
   () => formAddItem.units[0].id,
   newId => {
-    if (newId)
-      formAddItem.base_unit_id = newId
+    if (newId) formAddItem.base_unit_id = newId
   },
 )
 
@@ -454,7 +443,7 @@ onMounted(async () => {
               <VTextField
                 id="search"
                 v-model="searchQuery"
-                placeholder="Temukan Item berdasarkan Nama atau Barcode"
+                placeholder="Temukan"
                 variant="solo"
                 density="comfortable"
                 hide-details
@@ -477,9 +466,7 @@ onMounted(async () => {
   <!-- Items List Card -->
   <VCard class="mb-10">
     <VCardTitle class="d-flex justify-space-between align-center pa-5">
-      <h5 class="text-h5">
-        Daftar Item
-      </h5>
+      <h5 class="text-h5">Daftar Item</h5>
       <VBtn
         prepend-icon="ri-add-line"
         color="primary"
@@ -501,9 +488,7 @@ onMounted(async () => {
             indeterminate
             color="primary"
           />
-          <p class="text-medium-emphasis mt-4">
-            Memuat data item...
-          </p>
+          <p class="text-medium-emphasis mt-4">Memuat data item...</p>
         </VCol>
 
         <template v-else-if="filteredItems.length > 0">
@@ -559,33 +544,6 @@ onMounted(async () => {
         @update:model-value="fetchItems"
       />
     </div>
-  </VCard>
-
-  <!-- Stock Management Card -->
-  <VCard class="mt-10">
-    <VCardTitle class="pa-5 d-flex justify-space-between align-center">
-      <h5 class="text-h5">
-        Manajemen Stok Item
-      </h5>
-      <!-- [TAMBAH] Tombol untuk hapus item yang dipilih. Muncul saat ada item terpilih -->
-      <VBtn
-        v-if="selectedItemsForDeletion.length > 0"
-        color="error"
-        variant="elevated"
-        prepend-icon="ri-delete-bin-line"
-        @click="deleteSelectedItems"
-      >
-        Hapus Terpilih ({{ selectedItemsForDeletion.length }})
-      </VBtn>
-    </VCardTitle>
-    <VCardText>
-      <!-- [UBAH] Tambahkan v-model untuk mengelola item terpilih dari/ke child component -->
-      <StockTable
-        v-model:selected-items="selectedItemsForDeletion"
-        :items="items"
-        @updated="onItemUpdated"
-      />
-    </VCardText>
   </VCard>
 
   <!-- [UBAH] Dialog Tambah Item disesuaikan -->
@@ -683,9 +641,7 @@ onMounted(async () => {
               cols="12"
               md="6"
             >
-              <p class="text-subtitle-1 mb-2">
-                Pengaturan Satuan & Harga
-              </p>
+              <p class="text-subtitle-1 mb-2">Pengaturan Satuan & Harga</p>
               <p class="text-caption text-medium-emphasis mb-4">
                 Tentukan semua satuan jual untuk item ini. Pilih salah satu sebagai
                 <b>satuan dasar</b> (acuan stok).
@@ -708,7 +664,7 @@ onMounted(async () => {
                     />
                     <VSelect
                       v-model="unit.id"
-                      label="Satuan"
+                      label="Unit"
                       :items="units"
                       item-title="name"
                       item-value="id"

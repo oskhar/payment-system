@@ -46,11 +46,21 @@ import VerticalNavLink from '@layouts/components/VerticalNavLink.vue'
     }"
   />
 
+  <!-- Tautan "Item & Stock" diubah menjadi "Item" -->
   <VerticalNavLink
     :item="{
-      title: 'Item & Stock',
+      title: 'Item',
       icon: 'ri-box-3-line',
       to: '/item',
+    }"
+  />
+
+  <!-- Tombol baru untuk "Stock" ditambahkan di sini -->
+  <VerticalNavLink
+    :item="{
+      title: 'Stock',
+      icon: 'ri-stack-line',
+      to: '/stock',
     }"
   />
 

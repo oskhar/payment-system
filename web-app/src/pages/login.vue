@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
 import { useTheme } from 'vuetify'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import Swal from 'sweetalert2'
 import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
 
 import logo from '@images/logo-toko.png'
@@ -15,12 +19,65 @@ const form = ref({
 })
 
 const vuetifyTheme = useTheme()
+const router = useRouter()
 
 const authThemeMask = computed(() => {
   return vuetifyTheme.global.name.value === 'light' ? authV1MaskLight : authV1MaskDark
 })
 
 const isPasswordVisible = ref(false)
+const isLoading = ref(false)
+
+/**
+ * Fungsi untuk menangani proses login.
+ */
+const handleLogin = async () => {
+  isLoading.value = true
+  try {
+    const payload = {
+      email: form.value.email,
+      password: form.value.password,
+    }
+
+    // Kirim request ke endpoint login
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, payload)
+
+    // Asumsikan token ada di response.data.auth_token
+    const token = response.data.data.access_token
+    if (token) {
+      // Simpan token ke localStorage
+      localStorage.setItem('auth_token', token)
+
+      // Arahkan ke halaman utama setelah login berhasil
+      await router.push('/')
+    }
+    else {
+      Swal.fire('Login Gagal', 'Token tidak diterima dari server.', 'error')
+    }
+  }
+  catch (error: any) {
+    console.error('Login gagal:', error)
+
+    const errorMessage = error.response?.data?.message || 'Email atau password salah.'
+
+    Swal.fire('Login Gagal', errorMessage, 'error')
+  }
+  finally {
+    isLoading.value = false
+  }
+}
+
+/**
+ * Lifecycle hook yang berjalan saat komponen dimuat.
+ * Memeriksa apakah pengguna sudah login.
+ */
+onMounted(() => {
+  const token = localStorage.getItem('auth_token')
+  if (token) {
+    // Jika token sudah ada, langsung arahkan ke halaman utama
+    router.push('/')
+  }
+})
 </script>
 
 <template>
@@ -36,11 +93,10 @@ const isPasswordVisible = ref(false)
           to="/"
           class="d-flex align-center gap-3"
         >
-          <!-- eslint-disable vue/no-v-html -->
-          <div
-            class="d-flex"
-            v-html="logo"
-          />
+          <img
+            :src="logo"
+            style="height: 40px"
+          >
           <h2 class="font-weight-medium text-2xl text-uppercase">
             Materio
           </h2>
@@ -57,7 +113,7 @@ const isPasswordVisible = ref(false)
       </VCardText>
 
       <VCardText>
-        <VForm @submit.prevent="() => { }">
+        <VForm @submit.prevent="handleLogin">
           <VRow>
             <!-- email -->
             <VCol cols="12">
@@ -65,6 +121,7 @@ const isPasswordVisible = ref(false)
                 v-model="form.email"
                 label="Email"
                 type="email"
+                autocomplete="email"
               />
             </VCol>
 
@@ -75,7 +132,7 @@ const isPasswordVisible = ref(false)
                 label="Password"
                 placeholder="············"
                 :type="isPasswordVisible ? 'text' : 'password'"
-                autocomplete="password"
+                autocomplete="current-password"
                 :append-inner-icon="isPasswordVisible ? 'ri-eye-off-line' : 'ri-eye-line'"
                 @click:append-inner="isPasswordVisible = !isPasswordVisible"
               />
@@ -99,7 +156,8 @@ const isPasswordVisible = ref(false)
               <VBtn
                 block
                 type="submit"
-                to="/"
+                :loading="isLoading"
+                :disabled="isLoading"
               >
                 Login
               </VBtn>

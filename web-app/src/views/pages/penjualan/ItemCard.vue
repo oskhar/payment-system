@@ -2,13 +2,9 @@
 import { computed } from 'vue'
 
 // =================================================================
-// Type Definitions (Disesuaikan dengan struktur data baru)
+// Type Definitions
+// Struktur data tidak berubah, hanya memastikan tipe data sesuai.
 // =================================================================
-interface Category {
-  id: number
-  name: string
-}
-
 interface ItemPrice {
   id?: number
   price: number
@@ -20,174 +16,149 @@ interface Item {
   image_url: string
   name: string
   stock: number
-  categories: Category[]
   item_prices: ItemPrice[]
 }
 
 // =================================================================
-// Props & Emits
+// Props
+// Props tetap sama, menerima objek 'item'.
 // =================================================================
 const props = defineProps<{
   item: Item
 }>()
 
 // =================================================================
-// Computed Properties (Untuk mengambil harga dasar)
+// Computed Properties
+// Logika untuk mendapatkan harga dasar tidak berubah.
 // =================================================================
 
 /**
- * Menemukan harga dasar (dimana min_quantity adalah 1) dari array item_prices
+ * Menemukan harga dasar (dimana min_quantity adalah 1 atau harga terendah)
  * dan memformatnya ke dalam format mata uang Rupiah.
  */
 const formattedBasePrice = computed(() => {
-  // Temukan harga dengan kuantitas minimum 1 sebagai harga dasar.
-  const basePriceTier = props.item.item_prices?.find(p => p.min_quantity === 1)
-
-  // Jika tidak ditemukan, gunakan harga 0 sebagai fallback.
-  const price = basePriceTier?.price || 0
-
-  // Format harga ke dalam string Rupiah.
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price)
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(
+    props.item.price,
+  )
 })
 </script>
 
 <template>
   <VCard
-    class="shopping-card"
-    elevation="8"
-    max-width="360"
+    class="item-card"
+    style="height: 300px"
+    elevation="4"
   >
-    <!-- Gambar produk -->
+    <!-- Gambar Produk sebagai Latar Belakang -->
     <VImg
       :src="item.image_url"
-      alt="Gambar produk"
-      height="220"
-      class="product-image"
+      :alt="item.name"
+      class="bg-image"
       cover
-    />
-
-    <!-- Konten utama -->
-    <VCardText>
-      <h3 class="title">
-        {{ item.name }}
-      </h3>
-      <!-- PERBAIKAN: Menggunakan computed property untuk harga -->
-      <p class="price">
-        {{ formattedBasePrice }}
-      </p>
-      <p
-        class="stock"
-        :class="{ 'out-of-stock': item.stock === 0 }"
-      >
-        Stok: {{ item.stock }}
-      </p>
-
-      <!-- Kategori sebagai chips -->
-      <div
-        v-if="item.categories?.length"
-        class="categories"
-      >
+      gradient="to top, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.3) 39%, rgba(0,0,0,0.0) 40%, rgba(0,0,0,0) 100%"
+    >
+      <!-- Konten Overlay di atas Gambar -->
+      <div class="overlay-content">
+        <!-- Informasi Stok -->
         <VChip
-          v-for="category in item.categories"
-          :key="category.id"
-          class="category-chip"
-          color="secondary"
-          text-color="white"
+          class="stock-chip"
+          :color="item.stock > 0 ? 'success' : 'error'"
           size="small"
-          variant="outlined"
+          label
         >
-          {{ category.name }}
+          Stok: {{ item.stock }}
         </VChip>
+
+        <!-- Informasi Nama dan Harga -->
+        <div class="text-info">
+          <h3 class="item-name text-white">
+            {{ item.name }}
+          </h3>
+          <p class="item-price text-white">
+            {{ formattedBasePrice }}
+          </p>
+        </div>
       </div>
-    </VCardText>
+    </VImg>
   </VCard>
 </template>
 
 <style lang="scss" scoped>
-.shopping-card {
-  position: relative;
-  border-radius: 20px;
+.item-card {
+  border-radius: 16px;
   overflow: hidden;
-  background: #ffffff;
+  position: relative;
+  cursor: pointer;
   transition:
-    box-shadow 0.3s ease,
-    transform 0.3s ease;
-  cursor: default;
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  aspect-ratio: 4 / 3; // Menjaga rasio aspek kartu
 
-  &:hover {
-    box-shadow: 0 16px 32px rgba(25, 118, 210, 0.35);
-    transform: translateY(-6px);
+  &:hover:not(:disabled) {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
   }
+}
 
-  .close-btn {
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    color: #555;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 50%;
-    transition:
-      background-color 0.3s ease,
-      color 0.3s ease;
-    z-index: 10;
+.bg-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
 
-    &:hover {
-      background: #1976d2;
-      color: white;
-    }
-  }
+.overlay-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding: 12px;
+  color: white;
+  z-index: 2;
+}
 
-  .product-image {
-    border-bottom-left-radius: 20px;
-    border-bottom-right-radius: 20px;
-  }
+.stock-chip {
+  align-self: flex-end; // Posisikan di kanan atas
+  font-weight: bold;
+}
 
-  .title {
-    font-weight: 700;
-    font-size: 1.4rem;
-    margin-bottom: 0.3rem;
-    color: #1e2d3d;
-    user-select: none;
-  }
+.text-info {
+  align-self: flex-start; // Posisikan di kiri bawah
+}
 
-  .price {
-    font-weight: 600;
-    font-size: 1.2rem;
-    color: #1976d2;
-    margin-bottom: 0.6rem;
-    user-select: none;
-  }
+.item-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
 
-  .stock {
-    font-size: 1rem;
-    margin-bottom: 1rem;
-    color: #4caf50;
-    user-select: none;
+.item-price {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-top: 4px;
+}
 
-    &.out-of-stock {
-      color: #e53935;
-      font-weight: 700;
-    }
-  }
+.out-of-stock-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3; // Tampil di atas konten lain
 
-  .categories {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-
-    .category-chip {
-      border-radius: 14px;
-      font-weight: 500;
-      text-transform: capitalize;
-      cursor: default;
-      user-select: none;
-      transition: background-color 0.3s ease;
-
-      &:hover {
-        background-color: #1565c0 !important;
-        color: white !important;
-      }
-    }
+  span {
+    font-size: 1.5rem;
+    font-weight: bold;
+    transform: rotate(-15deg);
+    border: 3px solid #b71c1c;
+    padding: 8px 16px;
+    border-radius: 8px;
   }
 }
 </style>

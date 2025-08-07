@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 import { VForm } from 'vuetify/components'
@@ -14,7 +14,8 @@ const formRef = ref<typeof VForm | null>(null)
 const fetchCategories = async () => {
   try {
     const res = await axios.get(`${import.meta.env.VITE_API_URL}/category`)
-    categories.value = res.data.data || []
+
+    categories.value = res.data.data?.categories || res.data.data || []
   } catch (err) {
     console.error('Gagal mengambil kategori:', err)
   }
@@ -138,7 +139,7 @@ onMounted(() => {
     max-width="400"
   >
     <VCard>
-      <VCardTitle class="pa-4">Tambah Kategori</VCardTitle>
+      <VCardTitle class="pa-4"> Tambah Kategori </VCardTitle>
       <VForm
         ref="formRef"
         @submit.prevent="addCategory"
