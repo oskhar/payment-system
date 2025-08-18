@@ -201,6 +201,9 @@ const addCategory = async () => {
       cancelButton:
         'v-btn v-btn--elevated v-theme--light bg-secondary text-white v-btn--density-default v-btn--size-default v-btn--variant-elevated ml-3',
     },
+    didOpen: () => {
+      document.querySelector('.swal2-container').style.zIndex = '9999'
+    },
   })
 
   if (categoryName) {
