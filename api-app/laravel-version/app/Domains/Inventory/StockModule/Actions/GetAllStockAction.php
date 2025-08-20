@@ -5,7 +5,6 @@ namespace App\Domains\Inventory\StockModule\Actions;
 use App\Common\Data\FilterPaginationData;
 use App\Domains\Inventory\StockModule\Data\StockData;
 use App\Domains\Inventory\StockModule\Models\Stock;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Lorisleiva\Actions\Concerns\AsAction;
 

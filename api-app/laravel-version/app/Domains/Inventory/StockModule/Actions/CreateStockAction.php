@@ -11,6 +11,7 @@ use App\Domains\Product\ItemModule\Models\Item;
 use App\Domains\Product\ItemModule\Models\ItemUnit;
 use App\Domains\Product\UnitModule\Models\Unit;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class CreateStockAction
@@ -29,7 +30,7 @@ class CreateStockAction
         if ($existingTransactionNumber)
             throw new UnprocessableEntityException('Transaction number already exists');
 
-        $existBranch = Branch::where('id', $createStockData->branch_id)->first();
+        $existBranch = Branch::where('company_id', Auth::user()->company_id)->where('id', $createStockData->branch_id)->first();
         if (!$existBranch)
             throw new UnprocessableEntityException('Branch not found');
 

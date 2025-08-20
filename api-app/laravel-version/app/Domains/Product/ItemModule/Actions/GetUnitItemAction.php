@@ -6,6 +6,7 @@ use App\Common\Exceptions\UnprocessableEntityException;
 use App\Domains\Product\ItemModule\Models\Item;
 use App\Domains\Product\ItemModule\Models\ItemUnit;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class GetUnitItemAction
@@ -14,7 +15,7 @@ class GetUnitItemAction
 
     public function handle(string $id): mixed
     {
-        $item = Item::find($id);
+        $item = Item::where('company_id', Auth::user()->company_id)->find($id);
 
         if (!$item) {
             throw new UnprocessableEntityException('Item dengan ID ' . $id . ' tidak ditemukan.');

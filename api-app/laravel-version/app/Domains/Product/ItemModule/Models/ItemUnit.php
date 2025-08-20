@@ -12,7 +12,7 @@ class ItemUnit extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['item_id', 'unit_id', 'conversion_to_base', 'price', 'cost'];
+    protected $fillable = ['item_id', 'unit_id', 'conversion_to_base', 'price', 'cost', 'wholesale_price'];
 
     public function item(): BelongsTo
     {

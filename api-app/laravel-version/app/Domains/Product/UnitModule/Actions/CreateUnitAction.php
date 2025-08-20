@@ -6,6 +6,7 @@ use App\Domains\Product\UnitModule\Data\CreateUnitData;
 use App\Domains\Product\UnitModule\Data\UnitData;
 use App\Domains\Product\UnitModule\Models\Unit;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class CreateUnitAction
@@ -15,6 +16,7 @@ class CreateUnitAction
     public function handle(CreateUnitData $createUnitData): UnitData
     {
         return UnitData::from(Unit::create([
+            'company_id' => Auth::user()->company_id,
             'name' => $createUnitData->name,
             'abbreviation' => $createUnitData->abbreviation,
         ]));

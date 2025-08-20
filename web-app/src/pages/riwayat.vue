@@ -1,50 +1,6 @@
-<template>
-  <v-container fluid>
-    <v-row>
-      <v-col cols="12">
-        <v-alert
-          v-if="transactions.length === 0"
-          type="info"
-          class="mt-4"
-        >
-          No transaction history available.
-        </v-alert>
-        <v-col
-          v-for="transaction in transactions"
-          :key="transaction.id"
-          cols="12"
-        >
-          <v-card
-            class="mb-1"
-            outlined
-          >
-            <v-card-title class="d-flex justify-space-between">
-              <div>
-                <div class="text-h6">{{ transaction.transaction_number }}</div>
-                <div class="text-subtitle-2">{{ transaction.payment_method }}</div>
-              </div>
-              <v-btn
-                icon
-                color="error"
-                @click="confirmDelete(transaction.id)"
-              >
-                <v-icon>ri-delete-bin-line</v-icon>
-              </v-btn>
-            </v-card-title>
-
-            <v-card-text>
-              {{ transaction.balance }}
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-col>
-    </v-row>
-  </v-container>
-</template>
-
-<script>
-import axios from 'axios'
+<script setup lang="ts">
 import Swal from 'sweetalert2'
+import api from '@/api'
 
 export default {
   name: 'TransactionHistory',
@@ -53,10 +9,14 @@ export default {
       transactions: [],
     }
   },
+  mounted() {
+    this.fetchTransactions()
+  },
   methods: {
     async fetchTransactions() {
       try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/transaction`)
+        const { data } = await api.get(`${import.meta.env.VITE_API_URL}/transaction`)
+
         console.log(data.data)
         this.transactions = data.data.transactions
       } catch (error) {
@@ -74,13 +34,11 @@ export default {
         confirmButtonText: 'Yes, delete it!',
       })
 
-      if (result.isConfirmed) {
-        this.deleteTransaction(transactionId)
-      }
+      if (result.isConfirmed) this.deleteTransaction(transactionId)
     },
     async deleteTransaction(id) {
       try {
-        await axios.delete(`${import.meta.env.VITE_API_URL}/transaction`, {
+        await api.delete(`${import.meta.env.VITE_API_URL}/transaction`, {
           data: { id: [id] },
         })
         this.transactions = this.transactions.filter(t => t.id !== id)
@@ -91,11 +49,56 @@ export default {
       }
     },
   },
-  mounted() {
-    this.fetchTransactions()
-  },
 }
 </script>
+
+<template>
+  <VContainer fluid>
+    <VRow>
+      <VCol cols="12">
+        <VAlert
+          v-if="transactions.length === 0"
+          type="info"
+          class="mt-4"
+        >
+          No transaction history available.
+        </VAlert>
+        <VCol
+          v-for="transaction in transactions"
+          :key="transaction.id"
+          cols="12"
+        >
+          <VCard
+            class="mb-1"
+            outlined
+          >
+            <VCardTitle class="d-flex justify-space-between">
+              <div>
+                <div class="text-h6">
+                  {{ transaction.transaction_number }}
+                </div>
+                <div class="text-subtitle-2">
+                  {{ transaction.payment_method }}
+                </div>
+              </div>
+              <VBtn
+                icon
+                color="error"
+                @click="confirmDelete(transaction.id)"
+              >
+                <VIcon>ri-delete-bin-line</VIcon>
+              </VBtn>
+            </VCardTitle>
+
+            <VCardText>
+              {{ transaction.balance }}
+            </VCardText>
+          </VCard>
+        </VCol>
+      </VCol>
+    </VRow>
+  </VContainer>
+</template>
 
 <style scoped>
 .v-card-title {

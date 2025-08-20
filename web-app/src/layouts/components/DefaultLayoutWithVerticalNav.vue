@@ -43,10 +43,12 @@ const isLoadingBranches = ref(false)
 const fetchBranches = async () => {
   isLoadingBranches.value = true
   try {
-    const response = await api.get(`branch`)
-    branches.value = response.data.data.branches // Sesuaikan jika struktur data berbeda
-  }
-  catch (error: any) { // 3. Modifikasi blok catch
+    const response = await api.get('branch')
+
+    branches.value = response.data.data.branches
+    if (branches.value.length === 0) localStorage.removeItem('selectedBranch')
+  } catch (error: any) {
+    // 3. Modifikasi blok catch
     console.error('Gagal mengambil daftar cabang:', error)
 
     // Periksa jika error berasal dari response server dan statusnya 401
@@ -55,9 +57,9 @@ const fetchBranches = async () => {
       localStorage.removeItem('auth_token')
       router.push('/login')
     }
+
     // Anda bisa menambahkan notifikasi error lain di sini jika diperlukan
-  }
-  finally {
+  } finally {
     isLoadingBranches.value = false
   }
 }
@@ -76,15 +78,14 @@ const toggleSidebar = () => {
 /**
  * Mengawasi perubahan pada `selectedBranchId` dan menyimpannya ke localStorage.
  */
-watch(selectedBranchId, (newId) => {
+watch(selectedBranchId, newId => {
   if (newId) {
     const selectedBranch = branches.value.find(branch => branch.id === newId)
     if (selectedBranch) {
       // Simpan objek branch (id dan nama) ke localStorage
       localStorage.setItem('selectedBranch', JSON.stringify(selectedBranch))
     }
-  }
-  else {
+  } else {
     // Hapus dari localStorage jika tidak ada cabang yang dipilih
     localStorage.removeItem('selectedBranch')
   }
@@ -104,6 +105,7 @@ onMounted(async () => {
   if (savedBranch) {
     // Jika ada, gunakan data yang tersimpan
     const branch: Branch = JSON.parse(savedBranch)
+
     selectedBranchId.value = branch.id
   } else if (branches.value.length > 0) {
     // Jika tidak ada di localStorage DAN daftar cabang tidak kosong,
@@ -137,7 +139,10 @@ onMounted(async () => {
         <VSpacer />
 
         <div class="attention-branch-selector d-flex align-center pl-3">
-          <VIcon icon="ri-store-2-line" class="mr-3" />
+          <VIcon
+            icon="ri-store-2-line"
+            class="mr-3"
+          />
           <!-- 👉 Branch Selector -->
           <VSelect
             v-model="selectedBranchId"
@@ -149,8 +154,8 @@ onMounted(async () => {
             placeholder="Pilih Cabang"
             hide-details
             variant="underlined"
-            class="me-4 "
-            style="max-width: 400px;"
+            class="me-4"
+            style="max-width: 400px"
           />
         </div>
 
@@ -180,7 +185,7 @@ onMounted(async () => {
           style="border-radius: 50%"
           :style="{ width: isSidebarVisible ? '80px' : '2rem' }"
           src="/logo-toko.png"
-        >
+        />
         <!-- eslint-enable -->
       </RouterLink>
 
@@ -240,9 +245,11 @@ onMounted(async () => {
   0% {
     box-shadow: 0 0 0 0 rgba(var(--v-theme-primary), 0.3);
   }
+
   70% {
     box-shadow: 0 0 5px 10px rgba(var(--v-theme-primary), 0);
   }
+
   100% {
     box-shadow: 0 0 0 0 rgba(var(--v-theme-primary), 0);
   }
@@ -255,6 +262,7 @@ onMounted(async () => {
 }
 
 .attention-branch-selector:hover {
-  animation-play-state: paused; /* Hentikan animasi saat di-hover */
+  animation-play-state: paused;
+  /* Hentikan animasi saat di-hover */
 }
 </style>

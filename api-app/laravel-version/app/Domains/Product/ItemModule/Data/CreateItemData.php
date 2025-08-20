@@ -41,6 +41,7 @@ class UnitDataCollection extends Data
     public function __construct(
         public int $id,
         public float $price,
+        public ?float $wholesale_price,
         public float $cost,
         public float $conversion_to_base,
     ) {}

@@ -4,7 +4,6 @@ namespace App\Domains\Inventory\StockModule\Models;
 
 use App\Domains\Inventory\BranchModule\Models\Branch;
 use App\Domains\Product\ItemModule\Models\Item;
-use App\Domains\Sales\UserModule\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;

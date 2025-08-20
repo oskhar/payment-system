@@ -6,6 +6,7 @@ use App\Domains\Product\CategoryModule\Data\CategoryData;
 use App\Domains\Product\CategoryModule\Data\CreateCategoryData;
 use App\Domains\Product\CategoryModule\Models\Category;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class CreateCategoryAction
@@ -15,6 +16,7 @@ class CreateCategoryAction
     public function handle(CreateCategoryData $createCategoryData): CategoryData
     {
         return CategoryData::from(Category::create([
+            'company_id' => Auth::user()->company_id,
             'name' => $createCategoryData->name,
         ]));
     }

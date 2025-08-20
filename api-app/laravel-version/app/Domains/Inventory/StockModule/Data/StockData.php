@@ -19,7 +19,7 @@ class StockData extends Data
         public ItemStockData $item,
         public string $transaction_number,
         public string $type,
-        public string $description,
+        public ?string $description,
         public string $quantity,
         public string $created_at,
     ) {}

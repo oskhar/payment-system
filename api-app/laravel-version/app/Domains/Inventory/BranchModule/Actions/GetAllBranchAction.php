@@ -6,6 +6,7 @@ use App\Common\Data\FilterPaginationData;
 use App\Domains\Inventory\BranchModule\Data\BranchData;
 use App\Domains\Inventory\BranchModule\Models\Branch;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class GetAllBranchAction
@@ -16,14 +17,18 @@ class GetAllBranchAction
      * Meng-handle logika untuk mengambil semua data cabang dengan filter,
      * sorting, dan pagination.
      */
-    public function handle(FilterPaginationData $filter): array {
+    public function handle(FilterPaginationData $filter): array
+    {
         $query = Branch::query()
+            ->where('company_id', Auth::user()->company_id)
             ->when($filter->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('name', 'LIKE', "%{$search}%")
-                      ->orWhere('code', 'LIKE', "%{$search}%");
+                    $q
+                        ->where('name', 'LIKE', "%{$search}%")
+                        ->orWhere('code', 'LIKE', "%{$search}%");
                 });
-            })->when($filter->sort_by, function ($query, $sortBy) use ($filter) {
+            })
+            ->when($filter->sort_by, function ($query, $sortBy) use ($filter) {
                 $query->orderBy($sortBy, $filter->sort_type ?? 'asc');
             }, function ($query) {
                 $query->orderBy('created_at', 'desc');

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import axios from 'axios'
 import Swal from 'sweetalert2'
+import api from '@/api'
 
 // Interface untuk mendefinisikan struktur data Unit, sekarang dengan 'code'
 interface Unit {
@@ -22,7 +22,7 @@ const formRef = ref<InstanceType<typeof VForm> | null>(null)
 // 1. Mengambil semua unit dari server
 const fetchUnits = async () => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/unit`)
+    const response = await api.get(`${import.meta.env.VITE_API_URL}/unit`)
 
     // Memperbarui state 'units' dengan data dari response
     // Response dari backend sudah termasuk 'id', 'name', 'code', dan 'createdAt'
@@ -43,7 +43,7 @@ const addUnit = async () => {
     if (!valid) return
 
     // Mengirim POST request dengan nama dan kode unit baru
-    const response = await axios.post(`${import.meta.env.VITE_API_URL}/unit`, {
+    const response = await api.post('/unit', {
       name: name.value,
       abbreviation: code.value,
     })
@@ -89,7 +89,7 @@ const deleteUnit = async (ids: number[]) => {
 
   if (result.isConfirmed) {
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/unit`, { data: { ids } })
+      await api.delete(`${import.meta.env.VITE_API_URL}/unit`, { data: { ids } })
       Swal.fire('Terhapus!', 'Unit berhasil dihapus.', 'success')
       await fetchUnits()
     } catch (error) {

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import axios from 'axios'
 import Swal from 'sweetalert2'
 import { VForm } from 'vuetify/components'
+import api from '@/api'
 
 interface Branch {
   id: number
@@ -21,12 +21,11 @@ const selectedId = ref<number | null>(null)
 
 const fetchBranches = async () => {
   try {
-    const res = await axios.get(`${import.meta.env.VITE_API_URL}/branch`)
+    const res = await api.get(`${import.meta.env.VITE_API_URL}/branch`)
 
     console.log(res.data.data)
     branches.value = res.data.data.branches || []
-  }
-  catch (err) {
+  } catch (err) {
     console.error('Gagal mengambil data cabang:', err)
   }
 }
@@ -53,8 +52,7 @@ const openEditDialog = (branch: Branch) => {
 
 const saveBranch = async () => {
   const isValid = await formRef.value?.validate()
-  if (!isValid?.valid)
-    return
+  if (!isValid?.valid) return
 
   const payload = {
     name: name.value,
@@ -63,7 +61,7 @@ const saveBranch = async () => {
 
   try {
     if (isEdit.value && selectedId.value !== null) {
-      await axios.put(`${import.meta.env.VITE_API_URL}/branch/${selectedId.value}`, payload)
+      await api.put(`${import.meta.env.VITE_API_URL}/branch/${selectedId.value}`, payload)
 
       // --- LOGIKA BARU DIMULAI ---
       // Periksa apakah cabang yang diupdate adalah cabang yang sedang aktif di localStorage
@@ -85,17 +83,17 @@ const saveBranch = async () => {
       // --- LOGIKA BARU SELESAI ---
 
       Swal.fire('Berhasil', 'Cabang berhasil diperbarui.', 'success')
-    }
-    else {
-      await axios.post(`${import.meta.env.VITE_API_URL}/branch`, payload)
+      location.reload()
+    } else {
+      await api.post('/branch', payload)
       Swal.fire('Berhasil', 'Cabang berhasil ditambahkan.', 'success')
+      location.reload()
     }
 
     dialogVisible.value = false
     resetForm()
     fetchBranches()
-  }
-  catch (err) {
+  } catch (err) {
     console.error('Gagal menyimpan cabang:', err)
     Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan cabang.', 'error')
   }
@@ -113,13 +111,24 @@ const deleteBranch = async (id: number) => {
 
   if (confirm.isConfirmed) {
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/branch`, {
+      await api.delete(`${import.meta.env.VITE_API_URL}/branch`, {
         data: { ids: [id] },
       })
-      Swal.fire('Terhapus!', 'Cabang berhasil dihapus.', 'success')
-      fetchBranches()
-    }
-    catch (err) {
+
+      // 1. Cek apakah cabang yang dihapus adalah cabang yang aktif
+      const selectedBranchString = localStorage.getItem('selectedBranch')
+      if (selectedBranchString) {
+        // Asumsi 'selectedBranch' di local storage adalah JSON string dengan properti 'id'
+        const selectedBranch = JSON.parse(selectedBranchString)
+        if (selectedBranch.id === id) localStorage.removeItem('selectedBranch')
+      }
+
+      // Tunggu notifikasi sukses ditutup, lalu refresh
+      Swal.fire('Berhasil', 'Cabang berhasil ditambahkan.', 'success')
+
+      // 2. Refresh halaman
+      location.reload()
+    } catch (err) {
       console.error('Gagal menghapus cabang:', err)
       Swal.fire('Gagal', 'Tidak bisa menghapus cabang.', 'error')
     }
@@ -132,9 +141,7 @@ onMounted(fetchBranches)
 <template>
   <VCard class="mt-6">
     <VCardTitle class="pa-5 d-flex justify-space-between align-center">
-      <div class="text-h5">
-        Daftar Cabang
-      </div>
+      <div class="text-h5">Daftar Cabang</div>
       <VBtn
         color="primary"
         prepend-icon="ri-add-line"
@@ -151,9 +158,7 @@ onMounted(fetchBranches)
             <th>No</th>
             <th>Nama</th>
             <th>Lokasi</th>
-            <th class="text-center">
-              Aksi
-            </th>
+            <th class="text-center">Aksi</th>
           </tr>
         </thead>
         <tbody>

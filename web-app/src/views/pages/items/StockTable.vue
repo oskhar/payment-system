@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { defineProps, onMounted, ref, watch } from 'vue'
-import axios from 'axios'
 import Swal from 'sweetalert2'
+import api from '@/api'
 
 // =================================================================
 // Props
@@ -83,7 +83,7 @@ const stockHeaders: StockHeader[] = [
 const fetchStocks = async () => {
   isLoadingStocks.value = true
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/stock`)
+    const response = await api.get(`${import.meta.env.VITE_API_URL}/stock`)
 
     // Assuming the /stock endpoint now returns unit information (e.g., unit_name)
     stocks.value = response.data.data.stocks.map((stock: any) => ({
@@ -91,16 +91,14 @@ const fetchStocks = async () => {
       item_name: stock.item.name || 'Unknown Item',
       created_at: new Date(stock.created_at).toLocaleString(),
     }))
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Gagal mengambil data stok:', error)
     Swal.fire({
       icon: 'error',
       title: 'Gagal Memuat Stok',
       text: 'Terjadi kesalahan saat mengambil data stok.',
     })
-  }
-  finally {
+  } finally {
     isLoadingStocks.value = false
   }
 }
@@ -111,7 +109,7 @@ const fetchUnitsForItem = async (itemId: number) => {
   availableUnits.value = []
   try {
     // Assumption: Endpoint to get a single item's details (including its units) is /item/{id}
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/item/${itemId}/unit`)
+    const response = await api.get(`${import.meta.env.VITE_API_URL}/item/${itemId}/unit`)
 
     console.log(response.data.data)
 
@@ -123,25 +121,21 @@ const fetchUnitsForItem = async (itemId: number) => {
 
     // *** PERUBAHAN DI SINI ***
     // Secara otomatis pilih unit pertama jika tersedia
-    if (availableUnits.value.length > 0)
-      formAddStock.value.unit_id = availableUnits.value[0].id
-  }
-  catch (error) {
+    if (availableUnits.value.length > 0) formAddStock.value.unit_id = availableUnits.value[0].id
+  } catch (error) {
     console.error(`Gagal mengambil unit untuk item ${itemId}:`, error)
     Swal.fire({
       icon: 'error',
       title: 'Gagal Memuat Unit',
       text: 'Tidak dapat mengambil daftar unit untuk item yang dipilih.',
     })
-  }
-  finally {
+  } finally {
     isLoadingUnits.value = false
   }
 }
 
 const submitAddStock = async () => {
-  if (isSubmittingStock.value)
-    return
+  if (isSubmittingStock.value) return
 
   // Added validation for unit_id
   if (!formAddStock.value.item_id || !formAddStock.value.unit_id || formAddStock.value.quantity <= 0) {
@@ -158,13 +152,14 @@ const submitAddStock = async () => {
   try {
     const payload = {
       type: formAddStock.value.type,
+      branch_id: branch.id,
       quantity_change: formAddStock.value.quantity,
       unit_id: formAddStock.value.unit_id, // Include unit_id in the payload
       description: formAddStock.value.description || null,
       transaction_number: 'auto',
     }
 
-    await axios.post(`${import.meta.env.VITE_API_URL}/item`, payload)
+    await api.post('/item', payload)
 
     await fetchStocks()
     dialogAddStock.value = false
@@ -177,16 +172,14 @@ const submitAddStock = async () => {
       timer: 2000,
       showConfirmButton: false,
     })
-  }
-  catch (error: any) {
+  } catch (error: any) {
     console.error('Error adding stock:', error)
     Swal.fire({
       icon: 'error',
       title: 'Gagal Menambah Stok',
       text: error.response?.data?.message || 'Terjadi kesalahan pada server.',
     })
-  }
-  finally {
+  } finally {
     isSubmittingStock.value = false
   }
 }
@@ -220,7 +213,7 @@ const deleteSelectedStocks = async () => {
 
   if (result.isConfirmed) {
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/stock`, { data: { ids: selectedStockIds.value } })
+      await api.delete(`${import.meta.env.VITE_API_URL}/stock`, { data: { ids: selectedStockIds.value } })
       await fetchStocks()
       selectedStockIds.value = []
       Swal.fire({
@@ -230,8 +223,7 @@ const deleteSelectedStocks = async () => {
         timer: 2000,
         showConfirmButton: false,
       })
-    }
-    catch (error: any) {
+    } catch (error: any) {
       console.error('Error deleting stocks:', error)
       Swal.fire({
         icon: 'error',
@@ -268,16 +260,14 @@ watch(
     formAddStock.value.unit_id = null
     availableUnits.value = []
 
-    if (newId)
-      fetchUnitsForItem(newId)
+    if (newId) fetchUnitsForItem(newId)
   },
 )
 
 watch(
   () => props.items,
   async (newItems, oldItems) => {
-    if (newItems.length > 0 && newItems.length !== oldItems.length)
-      await fetchStocks()
+    if (newItems.length > 0 && newItems.length !== oldItems.length) await fetchStocks()
   },
   { deep: true, immediate: false },
 )
@@ -293,9 +283,7 @@ onMounted(async () => {
 <template>
   <VCard>
     <VCardTitle class="d-flex justify-space-between align-center pa-5">
-      <h5 class="text-h5">
-        Riwayat Stok
-      </h5>
+      <h5 class="text-h5">Riwayat Stok</h5>
       <div class="d-flex ga-2">
         <VBtn
           v-if="selectedStockIds.length > 0"
@@ -331,9 +319,7 @@ onMounted(async () => {
             color="primary"
             class="my-16"
           />
-          <p class="text-center text-medium-emphasis">
-            Memuat data stok...
-          </p>
+          <p class="text-center text-medium-emphasis">Memuat data stok...</p>
         </template>
         <template #no-data>
           <div class="text-center py-16">
@@ -342,12 +328,8 @@ onMounted(async () => {
               size="50"
               class="text-disabled mb-4"
             />
-            <p class="text-h6 text-disabled">
-              Belum ada riwayat transaksi stok.
-            </p>
-            <p class="text-medium-emphasis">
-              Klik "Tambah Transaksi Stok" untuk menambahkan.
-            </p>
+            <p class="text-h6 text-disabled">Belum ada riwayat transaksi stok.</p>
+            <p class="text-medium-emphasis">Klik "Tambah Transaksi Stok" untuk menambahkan.</p>
           </div>
         </template>
 

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import axios from 'axios'
 import Swal from 'sweetalert2'
 import { VForm } from 'vuetify/components'
+import api from '@/api'
 
 // State
 const categories = ref<{ id: number; name: string }[]>([])
@@ -13,7 +13,7 @@ const formRef = ref<typeof VForm | null>(null)
 // Fetch categories
 const fetchCategories = async () => {
   try {
-    const res = await axios.get(`${import.meta.env.VITE_API_URL}/category`)
+    const res = await api.get(`${import.meta.env.VITE_API_URL}/category`)
 
     categories.value = res.data.data?.categories || res.data.data || []
   } catch (err) {
@@ -27,7 +27,7 @@ const addCategory = async () => {
     const isValid = await formRef.value?.validate()
     if (!isValid.valid) return
 
-    const res = await axios.post(`${import.meta.env.VITE_API_URL}/category`, {
+    const res = await api.post('/category', {
       name: name.value,
     })
 
@@ -66,7 +66,7 @@ const deleteCategory = async (ids: number[]) => {
 
   if (confirmation.isConfirmed) {
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/category`, { data: { ids } })
+      await api.delete(`${import.meta.env.VITE_API_URL}/category`, { data: { ids } })
       Swal.fire('Terhapus!', 'Kategori berhasil dihapus.', 'success')
       fetchCategories()
     } catch (err) {

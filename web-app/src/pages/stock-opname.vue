@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-import axios from 'axios'
 import Swal from 'sweetalert2'
 import { v4 as uuidv4 } from 'uuid'
+import api from '@/api'
 
 // =================================================================
 // Type Definitions
@@ -58,7 +58,7 @@ const isSubmitting = ref(false)
 const fetchItems = async () => {
   isLoadingItems.value = true
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/item`, { params: { branch_id: branch.value.id } })
+    const response = await api.get(`${import.meta.env.VITE_API_URL}/item`, { params: { branch_id: branch.value.id } })
 
     // Assuming the API returns items in `response.data.data`
     items.value = response.data.data.items
@@ -82,7 +82,7 @@ const fetchUnitsForItem = async (itemId: number) => {
   isLoadingUnits.value = true
   availableUnits.value = []
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/item/${itemId}/unit`)
+    const response = await api.get(`${import.meta.env.VITE_API_URL}/item/${itemId}/unit`)
 
     availableUnits.value = response.data.data.units.map((unit: any) => ({
       id: unit.id,
@@ -137,8 +137,7 @@ const submitStockOpname = async () => {
   try {
     const payload = {
       item_id: selectedItemId.value,
-
-      // Map to the required structure, removing the temporary key
+      branch_id: branch.value.id,
       stock: stockEntries.value.map(({ unit_id, quantity }) => ({
         unit_id,
         quantity,
@@ -146,7 +145,7 @@ const submitStockOpname = async () => {
     }
 
     // Assuming the endpoint is /stock/opname
-    await axios.post(`${import.meta.env.VITE_API_URL}/stock/opname`, payload)
+    await api.post('/stock/opname', payload)
 
     Swal.fire({
       icon: 'success',

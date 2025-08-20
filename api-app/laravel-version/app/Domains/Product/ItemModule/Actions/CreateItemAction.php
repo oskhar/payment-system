@@ -6,6 +6,7 @@ use App\Common\Services\ImageSaveService;
 use App\Domains\Product\ItemModule\Data\CreateItemData;
 use App\Domains\Product\ItemModule\Models\Item;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class CreateItemAction
@@ -24,6 +25,7 @@ class CreateItemAction
 
         // Simpan data ke database
         $item = Item::create([
+            'company_id' => Auth::user()->company_id,
             'name' => $createItemData->name,
             'barcode' => $createItemData->barcode,
             'description' => $createItemData->description,
@@ -35,6 +37,7 @@ class CreateItemAction
             $item->itemUnits()->create([
                 'unit_id' => $unitData->id,
                 'price' => $unitData->price,
+                'wholesale_price' => $unitData->wholesale_price,
                 'cost' => $unitData->cost,
                 'conversion_to_base' => $unitData->conversion_to_base,
             ]);

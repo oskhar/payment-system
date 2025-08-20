@@ -4,19 +4,21 @@ namespace App\Domains\Product\CategoryModule\Actions;
 
 use App\Domains\Product\CategoryModule\Data\CategoryData;
 use App\Domains\Product\CategoryModule\Models\Category;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Lorisleiva\Actions\Concerns\AsAction;
+use Spatie\LaravelData\DataCollection;
 
 class GetAllCategoryAction
 {
     use AsAction;
 
-    public function handle(): Collection
+    public function handle(): mixed
     {
-        return CategoryData::collect(
-            Category::all()
-        );
+        $categories = Category::where('company_id', Auth::user()->company_id)
+            ->get();
+
+        return CategoryData::collect($categories);
     }
 
     public function asController(): JsonResponse

@@ -25,7 +25,7 @@ return new class extends Migration {
             $table->string('transaction_number');
             $table->integer('quantity');
             $table->enum('type', ['in', 'out']);
-            $table->string('description');
+            $table->string('description')->nullable();
             $table->timestamps();
         });
     }

@@ -6,6 +6,7 @@ use App\Common\Data\IdsData;
 use App\Common\Exceptions\UnprocessableEntityException;
 use App\Domains\Product\CategoryModule\Models\Category;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Lorisleiva\Actions\Concerns\AsAction;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -16,7 +17,7 @@ class DeleteCategoryAction
     public function handle(IdsData $idsData): void
     {
         $idsToDelete = $idsData->ids;
-        $existingCount = Category::whereIn('id', $idsToDelete)->count();
+        $existingCount = Category::where('company_id', Auth::user()->company_id)->whereIn('id', $idsToDelete)->count();
 
         if ($existingCount !== count($idsToDelete)) {
             $existingIds = Category::whereIn('id', $idsToDelete)->pluck('id')->all();

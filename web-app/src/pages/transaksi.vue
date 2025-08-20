@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, nextTick } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import Swal from 'sweetalert2'
 import ItemCard from '@/views/pages/penjualan/ItemCard.vue'
 import api from '@/api'
@@ -7,22 +7,21 @@ import api from '@/api'
 // Impor logo Anda
 import logoUrl from '@images/logo-toko.png'
 
-// --- Type Definitions ---
-interface Category {
-  id: number
-  name: string
-}
+// --- Type Definitions (Diperbaiki) ---
 
-interface ItemPrice {
-  id?: number
-  price: number
-  min_quantity: number
-}
-
-// [PERUBAHAN] Interface untuk Unit
 interface Unit {
   id: number
   name: string
+}
+
+// [BARU] Interface untuk data unit yang melekat pada item, termasuk harganya.
+interface ItemUnit {
+  id: number // ID dari relasi item_unit
+  unit_id: number
+  price: string // Harga dari API dalam bentuk string
+  cost: string
+  unit: Unit // Objek Unit yang berisi nama
+  conversion_to_base: string
 }
 
 interface Item {
@@ -31,17 +30,21 @@ interface Item {
   name: string
   barcode: string
   stock: number
-  price: number 
-  categories: Category[]
-  item_prices: ItemPrice[]
+  item_units: ItemUnit[] // Setiap item punya daftar unit & harganya
+  base_unit: Unit // Untuk menentukan unit default
 }
 
-// [PERUBAHAN] Interface untuk item di keranjang
+// [PERBAIKAN] Interface untuk item di keranjang disederhanakan.
 interface CartItem {
   product: Item
   quantity: number
-  units: Unit[] // Menyimpan daftar unit yang tersedia untuk item ini
-  selected_unit_id: number | null // Menyimpan ID unit yang dipilih
+  selected_unit_id: number | null // Cukup simpan ID unit yang dipilih
+}
+
+// Interface untuk data yang disimpan saat backup untuk cetak struk
+interface CartBackupItem extends CartItem {
+  resolvedPrice: number
+  resolvedUnitName: string
 }
 
 interface Branch {
@@ -56,7 +59,6 @@ const products = ref<Item[]>([])
 const cart = ref<CartItem[]>([])
 const paymentMethod = ref('cash')
 const isPrinterConnected = ref(false)
-const branch_id = ref(1) // [PENAMBAHAN] ID Cabang, bisa diubah sesuai kebutuhan
 
 const paymentMethods = [
   { label: 'DANA', value: 'dana' },
@@ -67,10 +69,9 @@ const paymentMethods = [
 ]
 
 // --- USB Printer State & Methods ---
-// Tidak ada perubahan di sini
 const device = ref<USBDevice | null>(null)
 const endpoint = ref<USBEndpoint | null>(null)
-const cartBackup = ref<CartItem[]>([])
+const cartBackup = ref<CartBackupItem[]>([]) // Menggunakan tipe data backup yang baru
 const totalPriceBackup = ref(0)
 const paymentMethodBackup = ref('')
 const transactionNumber = ref('')
@@ -81,7 +82,9 @@ const VENDOR_ID = 1155
 const PRODUCT_ID = 22339
 
 // --- Fungsi Helper & Printer ---
-// Tidak ada perubahan fungsionalitas di semua fungsi terkait printer
+// Tidak ada perubahan fungsionalitas di semua fungsi terkait printer,
+// hanya penyesuaian pada data yang digunakan di printReceiptToUsb
+
 async function convertImageToRaster(imageUrl: string): Promise<Uint8Array> {
   return new Promise((resolve, reject) => {
     const image = new Image()
@@ -210,6 +213,7 @@ const connectUsbPrinter = async (requestNew = false) => {
   }
 }
 
+// [PERBAIKAN] Menggunakan data dari cartBackup yang sudah di-resolve saat checkout
 const printReceiptToUsb = async () => {
   if (!isPrinterConnected.value || !device.value || !endpoint.value) {
     console.warn('Device atau endpoint printer belum tersedia.')
@@ -236,14 +240,18 @@ const printReceiptToUsb = async () => {
 
   let detailsLines = ''
   cartBackup.value.forEach(item => {
-    const itemPrice = getPriceForQuantity(item.product, item.quantity)
+    const itemPrice = item.resolvedPrice // Mengambil harga yang sudah disimpan
     const quantityPrice = `${item.quantity} x ${itemPrice.toLocaleString('id-ID')}`
     const subtotal = itemPrice * item.quantity
     const formattedSubtotal = `Rp${subtotal.toLocaleString('id-ID')}`
+    
+    // Menambahkan nama unit ke dalam struk
+    const itemNameWithUnit = `${item.product.name} (${item.resolvedUnitName})`
     const maxItemNameLength = paperWidthChars - 1
-    const itemName = item.product.name.length > maxItemNameLength
-        ? item.product.name.substring(0, maxItemNameLength)
-        : item.product.name
+    const itemName = itemNameWithUnit.length > maxItemNameLength
+      ? itemNameWithUnit.substring(0, maxItemNameLength)
+      : itemNameWithUnit
+      
     detailsLines += `${itemName}\n`
     const priceLine = `  ${quantityPrice}`.padEnd(paperWidthChars - formattedSubtotal.length) + formattedSubtotal
     detailsLines += `${priceLine}\n`
@@ -319,29 +327,33 @@ const filteredProducts = computed(() => {
   )
 })
 
-const totalPrice = computed(() => {
-  return cart.value.reduce((sum, item) => sum + getPriceForQuantity(item.product, item.quantity) * item.quantity, 0)
-})
+// [BARU] Fungsi helper untuk mendapatkan harga berdasarkan unit yang dipilih
+const getSelectedUnitPrice = (cartItem: CartItem): number => {
+  if (!cartItem.selected_unit_id)
+    return 0 // Jika tidak ada unit terpilih, harga 0
 
-const getPriceForQuantity = (item: Item, quantity: number): number => {
-  if (item.item_prices && item.item_prices.length > 0) {
-    const sortedPrices = [...item.item_prices].sort((a, b) => b.min_quantity - a.min_quantity)
-    const applicableTier = sortedPrices.find(tier => quantity >= tier.min_quantity)
-    const tieredPrice = applicableTier?.price ?? sortedPrices[sortedPrices.length - 1]?.price
-    if (typeof tieredPrice === 'number') {
-      return tieredPrice
-    }
-  }
-  if (typeof item.price === 'number') {
-    return item.price
-  }
-  return 0
+  // Cari data item_unit yang cocok di dalam produk
+  const selectedItemUnit = cartItem.product.item_units.find(
+    iu => iu.unit.id === cartItem.selected_unit_id,
+  )
+
+  // Kembalikan harga dari unit tersebut (ubah string ke angka)
+  return selectedItemUnit ? parseFloat(selectedItemUnit.price) : 0
 }
 
+// [PERBAIKAN] totalPrice sekarang menggunakan fungsi baru
+const totalPrice = computed(() => {
+  return cart.value.reduce((sum, item) => {
+    const price = getSelectedUnitPrice(item)
+    return sum + price * item.quantity
+  }, 0)
+})
+
+// [DIHAPUS] Fungsi getPriceForQuantity tidak diperlukan lagi
 
 const fetchProducts = async () => {
   try {
-    const response = await api.get(`item`, { params: { branch_id: branch.value.id } })
+    const response = await api.get('item', { params: { branch_id: branch.value.id } })
     products.value = response.data.data.items.map((row: any) => ({
       ...row,
       image_url: row.image_url
@@ -355,45 +367,25 @@ const fetchProducts = async () => {
   }
 }
 
-// [PENAMBAHAN] Fungsi untuk mengambil data unit untuk sebuah item
-const fetchUnitsForItem = async (cartItemIndex: number) => {
-  const item = cart.value[cartItemIndex]
-  if (!item) return
+// [DIHAPUS] Fungsi fetchUnitsForItem tidak diperlukan lagi
 
-  try {
-    const response = await api.get(`item/${item.product.id}/unit`)
-    const units = response.data.data // Sesuaikan dengan struktur respons API Anda
-    
-    // Simpan unit ke dalam state item keranjang
-    item.units = units
-
-    // Secara otomatis pilih unit pertama sebagai default jika tersedia
-    if (units.length > 0) {
-      item.selected_unit_id = units[0].id
-    }
-  } catch (error) {
-    console.error(`Gagal mengambil unit untuk item ${item.product.name}:`, error)
-    toast.fire({ icon: 'error', title: `Gagal memuat unit untuk ${item.product.name}.` })
-    item.units = [] // Kosongkan jika gagal
-  }
-}
-
+// [PERBAIKAN] addToCart disederhanakan
 const addToCart = (product: Item) => {
   const existingItemIndex = cart.value.findIndex(item => item.product.id === product.id)
-  
+
   if (existingItemIndex !== -1) {
     cart.value[existingItemIndex].quantity++
   }
   else {
-    // Tambahkan item baru ke keranjang dengan properti unit
-    cart.value.push({ 
-      product, 
+    // Tentukan unit default saat item pertama kali ditambahkan
+    // Prioritas: base_unit dari produk, atau unit pertama jika base_unit null
+    const defaultUnitId = product.base_unit?.id ?? product.item_units[0]?.unit.id ?? null
+
+    cart.value.push({
+      product,
       quantity: 1,
-      units: [], // Awalnya kosong, akan diisi oleh fetchUnitsForItem
-      selected_unit_id: null // Awalnya null
+      selected_unit_id: defaultUnitId, // Langsung set unit default
     })
-    // Ambil data unit untuk item yang baru ditambahkan
-    fetchUnitsForItem(cart.value.length - 1)
   }
 }
 
@@ -408,7 +400,6 @@ const decrementQuantity = (index: number) => {
     cart.value.splice(index, 1)
 }
 
-// [PEROMBAKAN TOTAL] Fungsi checkout disesuaikan dengan skema baru
 const checkout = async () => {
   if (!paymentMethod.value) {
     toast.fire({ icon: 'warning', title: 'Pilih metode pembayaran.' })
@@ -418,8 +409,7 @@ const checkout = async () => {
     toast.fire({ icon: 'warning', title: 'Keranjang belanja masih kosong.' })
     return
   }
-  
-  // Validasi: Pastikan semua item memiliki unit yang dipilih
+
   const isAllUnitsSelected = cart.value.every(item => item.selected_unit_id !== null)
   if (!isAllUnitsSelected) {
     toast.fire({ icon: 'warning', title: 'Pastikan semua item memiliki unit yang dipilih.' })
@@ -427,27 +417,35 @@ const checkout = async () => {
   }
 
   try {
-    // [PERUBAHAN] Struktur payload disesuaikan dengan CreateTransactionSchema
     const payload = {
-      transaction_number: 'auto', // Sesuai skema, bisa di-generate backend
+      transaction_number: 'auto',
       total_amount: totalPrice.value,
       payment_method: paymentMethod.value,
-      branch_id: branch_id.value,
-      item: cart.value.map(cartItem => ({
+      branch_id: branch.value.id,
+      items: cart.value.map(cartItem => ({ // perhatikan perubahan 'item' menjadi 'items' jika API Anda menggunakan bentuk jamak
         unit_id: cartItem.selected_unit_id,
         item_id: cartItem.product.id,
         quantity: cartItem.quantity,
+        price: getSelectedUnitPrice(cartItem), // Kirim juga harga per unit saat transaksi
       })),
     }
 
-    const { data } = await api.post(`transaction`, payload)
+    const { data } = await api.post('transaction', payload)
 
-    // Logika backup dan cetak struk tetap sama
-    cartBackup.value = JSON.parse(JSON.stringify(cart.value))
+    // [PERBAIKAN] Backup data untuk cetak struk dengan menyimpan harga dan nama unit yang sudah final
+    cartBackup.value = cart.value.map(item => {
+        const selectedUnitInfo = item.product.item_units.find(iu => iu.unit.id === item.selected_unit_id)
+        return {
+            ...item,
+            resolvedPrice: getSelectedUnitPrice(item),
+            resolvedUnitName: selectedUnitInfo?.unit.name || 'N/A',
+        }
+    })
+    
     totalPriceBackup.value = totalPrice.value
     paymentMethodBackup.value = paymentMethod.value
-    transactionNumber.value = data.transaction?.transaction_number || ''
-    transactionDate.value = data.transaction?.created_at || ''
+    transactionNumber.value = data.data.transaction_number || ''
+    transactionDate.value = data.data.created_at || ''
 
     await toast.fire({ icon: 'success', title: 'Pembayaran Berhasil!' })
 
@@ -516,7 +514,6 @@ onUnmounted(() => {
     class="cashier-page"
   >
     <VRow>
-      <!-- Daftar Produk -->
       <VCol
         cols="12"
         md="8"
@@ -558,7 +555,6 @@ onUnmounted(() => {
         </template>
       </VCol>
 
-      <!-- Keranjang Belanja -->
       <VCol
         cols="12"
         md="4"
@@ -598,7 +594,7 @@ onUnmounted(() => {
             >
               <VListItem
                 v-for="(cartItem, index) in cart"
-                :key="cartItem.product.id"
+                :key="`${cartItem.product.id}-${index}`"
                 class="cart-item"
               >
                 <div class="d-flex flex-column" style="width: 100%;">
@@ -609,9 +605,10 @@ onUnmounted(() => {
                       </VListItemTitle>
                       <VListItemSubtitle>
                         {{
-                          getPriceForQuantity(cartItem.product, cartItem.quantity).toLocaleString('id-ID', {
+                          getSelectedUnitPrice(cartItem).toLocaleString('id-ID', {
                             style: 'currency',
                             currency: 'IDR',
+                            minimumFractionDigits: 0,
                           })
                         }}
                       </VListItemSubtitle>
@@ -637,17 +634,14 @@ onUnmounted(() => {
                     </div>
                   </div>
                   
-                  <!-- [PENAMBAHAN] Select/Dropdown untuk memilih unit -->
                   <VSelect
                     v-model="cartItem.selected_unit_id"
-                    :items="cartItem.units"
-                    item-title="name"
-                    item-value="id"
-                    label="Unit"
+                    :items="cartItem.product.item_units"
+                    item-title="unit.name"
+                    item-value="unit.id" label="Unit"
                     variant="outlined"
                     density="compact"
                     class="mt-3"
-                    :loading="cartItem.units.length === 0"
                     hide-details
                   />
                 </div>
@@ -677,6 +671,7 @@ onUnmounted(() => {
                   totalPrice.toLocaleString('id-ID', {
                     style: 'currency',
                     currency: 'IDR',
+                    minimumFractionDigits: 0,
                   })
                 }}</span>
               </div>

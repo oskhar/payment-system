@@ -51,6 +51,7 @@ return new class extends Migration {
             $table->foreignId('unit_id')->constrained()->onDelete('cascade');
             $table->decimal('conversion_to_base', 10, 4);
             $table->decimal('price', 15, 2);
+            $table->decimal('wholesale_price', 15, 2)->nullable();
             $table->decimal('cost', 15, 2);
             $table->timestamps();
             $table->softDeletes();

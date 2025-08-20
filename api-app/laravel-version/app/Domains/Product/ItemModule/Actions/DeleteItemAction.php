@@ -8,6 +8,7 @@ use App\Domains\Product\ItemModule\Models\Item;
 use App\Domains\Product\ItemModule\Models\ItemCategory;
 use App\Domains\Product\ItemModule\Models\ItemUnit;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,9 +20,9 @@ class DeleteItemAction
     public function handle(IdsData $idsData): void
     {
         $ids = $idsData->ids;
-
-        // 1. Validasi eksistensi: Periksa apakah semua ID ada di database.
-        $existingItemsCount = Item::whereIn('id', $ids)->count();
+        $existingItemsCount = Item::where('company_id', Auth::user()->company_id)
+            ->whereIn('id', $ids)
+            ->count();
 
         if ($existingItemsCount !== count($ids)) {
             $foundIds = Item::whereIn('id', $ids)->pluck('id')->toArray();

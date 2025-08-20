@@ -6,6 +6,7 @@ use App\Common\Data\IdsData;
 use App\Common\Exceptions\UnprocessableEntityException;
 use App\Domains\Inventory\BranchModule\Models\Branch;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Lorisleiva\Actions\Concerns\AsAction;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -16,7 +17,10 @@ class DeleteBranchAction
     public function handle(IdsData $idsData): void
     {
         $idsToDelete = $idsData->ids;
-        $existingCount = Branch::whereIn('id', $idsToDelete)->count();
+        $query = Branch::where('company_id', Auth::user()->company_id)
+            ->whereIn('id', $idsToDelete);
+
+        $existingCount = $query->clone()->count();
 
         if ($existingCount !== count($idsToDelete)) {
             $existingIds = Branch::whereIn('id', $idsToDelete)->pluck('id')->all();

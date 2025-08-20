@@ -6,16 +6,18 @@ use App\Common\Data\FilterPaginationData;
 use App\Domains\Inventory\StockModule\Services\GetStockService;
 use App\Domains\Product\ItemModule\Models\Item;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class GetAllItemAction
 {
     use AsAction;
 
-    public function handle(FilterPaginationData $filter): JsonResponse
+    public function handle(FilterPaginationData $filter): array
     {
         // 2. Bangun query Eloquent
         $query = Item::query()
+            ->where('company_id', Auth::user()->company_id)
             ->with(['baseUnit', 'itemCategories.category', 'itemUnits.unit'])
             ->when($filter->search, function ($query, $search) {
                 $query->where('name', 'LIKE', "%{$search}%");
@@ -38,13 +40,14 @@ class GetAllItemAction
                 'categories' => $item->categories,
                 'item_units' => $item->itemUnits,
                 'price' => $baseItemUnit?->price,
+                'wholesale_price' => $baseItemUnit?->wholesale_price,
                 'cost' => $baseItemUnit?->cost,
                 'stock' => (new GetStockService())($filter->branch_id, $item->id),
             ];
         });
 
         // 5. Format respons akhir agar sesuai dengan struktur yang diinginkan
-        return response()->json([
+        return [
             'items' => $transformedItems,
             'pagination' => [
                 'total' => $paginator->total(),
@@ -58,11 +61,13 @@ class GetAllItemAction
                     'last' => $paginator->url($paginator->lastPage()),
                 ],
             ],
-        ]);
+        ];
     }
 
     public function asController(FilterPaginationData $filter): JsonResponse
     {
-        return $this->handle($filter);
+        return response()->json(
+            $this->handle($filter)
+        );
     }
 }

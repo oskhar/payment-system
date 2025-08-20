@@ -1,14 +1,31 @@
 <template>
   <!-- SECTION: Card Display -->
-  <VCard class="shopping-card" elevation="4" max-width="360" rounded="xl">
+  <VCard
+    class="shopping-card"
+    elevation="4"
+    max-width="360"
+    rounded="xl"
+  >
     <!-- Delete Button -->
-    <VBtn icon variant="flat" size="small" class="close-btn" aria-label="Delete item" data-testid="delete-button"
-      @click="handleDeleteItem">
+    <VBtn
+      icon
+      variant="flat"
+      size="small"
+      class="close-btn"
+      aria-label="Delete item"
+      data-testid="delete-button"
+      @click="handleDeleteItem"
+    >
       <VIcon icon="ri-close-line" />
     </VBtn>
 
     <!-- Product Image -->
-    <VImg :src="item.image_url" :alt="`Gambar ${item.name}`" height="220" cover />
+    <VImg
+      :src="item.image_url"
+      :alt="`Gambar ${item.name}`"
+      height="220"
+      cover
+    />
 
     <!-- Main Content -->
     <VCardText class="pt-4">
@@ -20,6 +37,16 @@
         {{ formattedBasePrice }}
       </p>
       <p class="price text-caption text-secondary">
+        Grosir:
+        {{
+          new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+          }).format(item.wholesale_price || 0)
+        }}
+      </p>
+      <p class="price text-caption text-secondary">
         Modal:
         {{
           new Intl.NumberFormat('id-ID', {
@@ -29,15 +56,27 @@
           }).format(item.cost || 0)
         }}
       </p>
-      <p class="stock" :class="{ 'out-of-stock': item.stock === 0 }">
+      <p
+        class="stock"
+        :class="{ 'out-of-stock': item.stock <= 0 }"
+      >
         Stok: {{ item.stock }} {{ baseUnitName }}
       </p>
       <p class="barcode">Barcode: {{ item.barcode || '-' }}</p>
 
       <!-- Categories -->
-      <div v-if="item.categories?.length" class="categories">
-        <VChip v-for="catLink in item.categories" :key="catLink.id" class="category-chip"
-          color="secondary" size="small" variant="tonal">
+      <div
+        v-if="item.categories?.length"
+        class="categories"
+      >
+        <VChip
+          v-for="catLink in item.categories"
+          :key="catLink.id"
+          class="category-chip"
+          color="secondary"
+          size="small"
+          variant="tonal"
+        >
           {{ catLink.name }}
         </VChip>
       </div>
@@ -47,14 +86,26 @@
     <VCardActions class="pa-4 pt-0">
       <VRow no-gutters>
         <VCol>
-          <VBtn color="success" variant="tonal" prepend-icon="ri-add-line" block data-testid="restock-button"
-            @click="openRestockDialog">
+          <VBtn
+            color="success"
+            variant="tonal"
+            prepend-icon="ri-add-line"
+            block
+            data-testid="restock-button"
+            @click="openRestockDialog"
+          >
             Restock
           </VBtn>
         </VCol>
         <VCol class="pl-2">
-          <VBtn prepend-icon="ri-pencil-line" block color="primary" variant="tonal" data-testid="edit-button"
-            @click="openItemFormDialog">
+          <VBtn
+            prepend-icon="ri-pencil-line"
+            block
+            color="primary"
+            variant="tonal"
+            data-testid="edit-button"
+            @click="openItemFormDialog"
+          >
             Edit
           </VBtn>
         </VCol>
@@ -64,24 +115,57 @@
   <!-- !SECTION -->
 
   <!-- SECTION: Edit Item Dialog -->
-  <VDialog v-model="dialogs.itemForm" max-width="800" persistent>
+  <VDialog
+    v-model="dialogs.itemForm"
+    max-width="800"
+    persistent
+  >
     <VCard>
       <VForm @submit.prevent="submitItemForm">
         <VCardTitle class="pa-4 d-flex justify-space-between align-center">
           <span>Edit Item</span>
-          <VBtn icon="ri-close-line" variant="text" @click="closeAllDialogs" />
+          <VBtn
+            icon="ri-close-line"
+            variant="text"
+            @click="closeAllDialogs"
+          />
         </VCardTitle>
 
         <VCardText class="pb-0">
           <VRow>
             <!-- Kolom Kiri: Info Dasar -->
-            <VCol cols="12" md="6">
-              <VTextField v-model="form.name" label="Nama Item" class="mb-4" required />
-              <VTextField v-model="form.barcode" label="Barcode Item" class="mb-4" />
-              <VSelect v-model="form.selectedCategories" label="Kategori" :items="categories" item-title="name"
-                item-value="id" multiple chips clearable closable-chips class="mb-4">
+            <VCol
+              cols="12"
+              md="6"
+            >
+              <VTextField
+                v-model="form.name"
+                label="Nama Item"
+                class="mb-4"
+                required
+              />
+              <VTextField
+                v-model="form.barcode"
+                label="Barcode Item"
+                class="mb-4"
+              />
+              <VSelect
+                v-model="form.selectedCategories"
+                label="Kategori"
+                :items="categories"
+                item-title="name"
+                item-value="id"
+                multiple
+                chips
+                clearable
+                closable-chips
+                class="mb-4"
+              >
                 <template #prepend-item>
-                  <VListItem title="Pilih Semua" @click="toggleSelectAllCategories">
+                  <VListItem
+                    title="Pilih Semua"
+                    @click="toggleSelectAllCategories"
+                  >
                     <template #prepend>
                       <VCheckbox :model-value="isAllCategoriesSelected" />
                     </template>
@@ -89,48 +173,122 @@
                   <VDivider />
                 </template>
               </VSelect>
-              <VTextarea v-model="form.description" label="Deskripsi" rows="2" class="mb-4" />
-              <VFileInput v-model="form.imageFile" label="Upload Gambar Baru (Opsional)" accept="image/*"
-                prepend-icon="" prepend-inner-icon="ri-image-add-line" />
+              <VTextarea
+                v-model="form.description"
+                label="Deskripsi"
+                rows="2"
+                class="mb-4"
+              />
+              <VFileInput
+                v-model="form.imageFile"
+                label="Upload Gambar Baru (Opsional)"
+                accept="image/*"
+                prepend-icon=""
+                prepend-inner-icon="ri-image-add-line"
+              />
             </VCol>
 
             <!-- Kolom Kanan: Pengaturan Satuan & Harga -->
-            <VCol cols="12" md="6">
+            <VCol
+              cols="12"
+              md="6"
+            >
               <p class="text-subtitle-1 mb-2">Pengaturan Satuan & Harga</p>
               <p class="text-caption text-medium-emphasis mb-4">
                 Pilih salah satu sebagai <b>satuan dasar</b> (acuan stok).
               </p>
 
-              <VRadioGroup v-model="form.base_unit_id" class="w-100">
-                <div v-for="(unit, index) in form.units" :key="index" class="unit-row mb-4">
+              <VRadioGroup
+                v-model="form.base_unit_id"
+                class="w-100"
+              >
+                <div
+                  v-for="(unit, index) in form.units"
+                  :key="index"
+                  class="unit-row mb-4"
+                >
                   <div class="d-flex align-center ga-2">
-                    <VRadio :value="unit.id" :disabled="!unit.id" class="mt-4" />
-                    <VSelect v-model="unit.id" label="Unit" :items="units" item-title="name" item-value="id"
-                      density="compact" hide-details style="min-width: 120px" required />
-                    <VBtn v-if="form.units.length > 1" icon="ri-delete-bin-line" variant="text" color="error"
-                      size="small" @click="removeUnit(index)" />
+                    <VRadio
+                      :value="unit.id"
+                      :disabled="!unit.id"
+                      class="mt-4"
+                    />
+                    <VSelect
+                      v-model="unit.id"
+                      label="Unit"
+                      :items="units"
+                      item-title="name"
+                      item-value="id"
+                      density="compact"
+                      hide-details
+                      style="min-width: 120px"
+                      required
+                    />
+                    <VBtn
+                      v-if="form.units.length > 1"
+                      icon="ri-delete-bin-line"
+                      variant="text"
+                      color="error"
+                      size="small"
+                      @click="removeUnit(index)"
+                    />
                   </div>
                   <VRow class="pl-12 pt-2">
-                    <VCol cols="12" sm="6">
-                      <VTextField v-model.number="unit.cost" label="Harga Beli (Modal)" type="number" prefix="Rp"
-                        density="compact" hide-details required />
+                    <VCol
+                      cols="12"
+                      sm="6"
+                    >
+                      <VTextField
+                        v-model.number="unit.cost"
+                        label="Harga Beli (Modal)"
+                        type="number"
+                        prefix="Rp"
+                        density="compact"
+                        hide-details
+                        required
+                      />
                     </VCol>
-                    <VCol cols="12" sm="6">
-                      <VTextField v-model.number="unit.price" label="Harga Jual" type="number" prefix="Rp"
-                        density="compact" hide-details required />
+                    <VCol
+                      cols="12"
+                      sm="6"
+                    >
+                      <VTextField
+                        v-model.number="unit.price"
+                        label="Harga Jual"
+                        type="number"
+                        prefix="Rp"
+                        density="compact"
+                        hide-details
+                        required
+                      />
                     </VCol>
                     <VCol cols="12">
-                      <VTextField v-model.number="unit.conversion_to_base" label="Konversi ke Satuan Dasar"
-                        type="number" :disabled="unit.id === form.base_unit_id" density="compact"
-                        :hint="unit.id === form.base_unit_id ? 'Satuan dasar selalu bernilai 1' : ''" persistent-hint
-                        required />
+                      <VTextField
+                        v-model.number="unit.conversion_to_base"
+                        label="Konversi ke Satuan Dasar"
+                        type="number"
+                        :disabled="unit.id === form.base_unit_id"
+                        density="compact"
+                        :hint="unit.id === form.base_unit_id ? 'Satuan dasar selalu bernilai 1' : ''"
+                        persistent-hint
+                        required
+                      />
                     </VCol>
                   </VRow>
-                  <VDivider v-if="index < form.units.length - 1" class="mt-4" />
+                  <VDivider
+                    v-if="index < form.units.length - 1"
+                    class="mt-4"
+                  />
                 </div>
               </VRadioGroup>
 
-              <VBtn block variant="tonal" color="primary" prepend-icon="ri-add-line" @click="addUnit">
+              <VBtn
+                block
+                variant="tonal"
+                color="primary"
+                prepend-icon="ri-add-line"
+                @click="addUnit"
+              >
                 Tambah Satuan Lain
               </VBtn>
             </VCol>
@@ -138,10 +296,19 @@
         </VCardText>
 
         <VCardActions class="pa-4 d-flex justify-end">
-          <VBtn color="secondary" variant="text" @click="closeAllDialogs">
+          <VBtn
+            color="secondary"
+            variant="text"
+            @click="closeAllDialogs"
+          >
             Batal
           </VBtn>
-          <VBtn type="submit" variant="elevated" color="primary" :loading="isSubmitting">
+          <VBtn
+            type="submit"
+            variant="elevated"
+            color="primary"
+            :loading="isSubmitting"
+          >
             Update
           </VBtn>
         </VCardActions>
@@ -151,28 +318,85 @@
   <!-- !SECTION -->
 
   <!-- SECTION: Restock Dialog -->
-  <VDialog v-model="dialogs.restock" max-width="500" persistent>
+  <VDialog
+    v-model="dialogs.restock"
+    max-width="500"
+    persistent
+  >
     <VCard>
       <VForm @submit.prevent="submitRestockForm">
-        <VCardTitle class="pa-4"> Restock: {{ item.name }} - <b class="text-primary">{{ branch.name }}</b></VCardTitle>
+        <VCardTitle class="pa-4">
+          Restock: {{ item.name }} - <b class="text-primary">{{ branch.name }}</b></VCardTitle
+        >
         <VCardText>
-          <VTextField v-model="restockForm.transaction_number"
+          <VTextField
+            v-model="restockForm.transaction_number"
             :label="restockForm.transaction_number_auto ? 'No Transaksi (Otomatis)' : 'No Transaksi'"
-            :disabled="restockForm.transaction_number_auto" class="mb-2" />
-          <VSwitch v-model="restockForm.transaction_number_auto" label="Nomor transaksi otomatis" color="primary"
-            class="mb-2" />
-          <VSelect v-model="restockForm.type" label="Tipe Transaksi" :items="[
-            { title: 'Stok Masuk', value: 'stock_in' },
-            { title: 'Stok Keluar', value: 'stock_out' },
-          ]" class="mb-4" required />
-          <VTextField v-model.number="restockForm.quantity" label="Jumlah Item" type="number" class="mb-4" required />
-          <VTextarea v-model="restockForm.description" label="Deskripsi (Opsional)" auto-grow clearable rows="2" />
+            :disabled="restockForm.transaction_number_auto"
+            class="mb-2"
+          />
+          <VSwitch
+            v-model="restockForm.transaction_number_auto"
+            label="Nomor transaksi otomatis"
+            color="primary"
+            class="mb-2"
+          />
+          <VSelect
+            v-model="restockForm.type"
+            label="Tipe Transaksi"
+            :items="[
+              { title: 'Stok Masuk', value: 'in' },
+              { title: 'Stok Keluar', value: 'out' },
+            ]"
+            class="mb-4"
+            required
+          />
+
+          <!-- [BARU] Tambahkan VRow untuk mensejajarkan Jumlah dan Unit -->
+          <VRow>
+            <VCol cols="8">
+              <VTextField
+                v-model.number="restockForm.quantity"
+                label="Jumlah"
+                type="number"
+                required
+              />
+            </VCol>
+            <VCol cols="4">
+              <VSelect
+                v-model="restockForm.unit_id"
+                label="Unit"
+                :items="availableRestockUnits"
+                item-title="name"
+                item-value="id"
+                required
+                no-data-text="Unit tidak ada"
+              />
+            </VCol>
+          </VRow>
+
+          <VTextarea
+            v-model="restockForm.description"
+            label="Deskripsi (Opsional)"
+            auto-grow
+            clearable
+            rows="2"
+            class="mt-4"
+          />
         </VCardText>
         <VCardActions class="pa-4 d-flex justify-end">
-          <VBtn color="secondary" variant="text" @click="closeAllDialogs">
+          <VBtn
+            color="secondary"
+            variant="text"
+            @click="closeAllDialogs"
+          >
             Batal
           </VBtn>
-          <VBtn type="submit" variant="elevated" color="primary">
+          <VBtn
+            type="submit"
+            variant="elevated"
+            color="primary"
+          >
             Submit
           </VBtn>
         </VCardActions>
@@ -189,10 +413,9 @@ import api from '@/api'
 
 // =================================================================
 // Type Definitions
-// [UBAH] Menyesuaikan interface agar cocok dengan data JSON dari API
 // =================================================================
 
-const branch = ref<Branch>(JSON.parse(localStorage.getItem('selectedBranch')));
+const branch = ref(JSON.parse(localStorage.getItem('selectedBranch') || '{}'))
 
 interface Unit {
   id: number
@@ -219,6 +442,7 @@ interface ItemUnit {
   unit: Unit
   conversion_to_base: number
   price: number
+  wholesale_price: number
   cost: number
 }
 
@@ -231,16 +455,17 @@ interface Item {
   stock: number
   price: number // Harga jual satuan dasar
   cost: number // Harga beli satuan dasar
+  wholesale_price: number
   base_unit_id: number
   base_unit: Unit
   categories: ItemCategoryLink[]
   item_units: ItemUnit[]
 }
 
-// [UBAH] Interface untuk data unit di dalam form edit
 interface FormUnit {
-  id: number | null // Ini adalah ID dari Unit (bukan ItemUnit)
+  id: number | null
   price: number
+  wholesale_price: number
   cost: number
   conversion_to_base: number
 }
@@ -272,17 +497,19 @@ const form = reactive({
   barcode: '',
   description: '',
   selectedCategories: [] as number[],
-  units: [] as FormUnit[], // [UBAH] Menggunakan interface FormUnit
+  units: [] as FormUnit[],
   base_unit_id: null as number | null,
   imageFile: null as File[] | null,
 })
 
+// [DIUBAH] Menambahkan unit_id ke restockForm
 const restockForm = reactive({
   transaction_number: '',
   transaction_number_auto: true,
-  type: 'stock_in',
+  type: 'in',
   description: '',
   quantity: 0,
+  unit_id: null as number | null, // Properti baru untuk menyimpan ID unit
 })
 
 const categories = ref<Category[]>([])
@@ -292,22 +519,18 @@ const units = ref<Unit[]>([]) // Untuk VSelect
 // Computed Properties
 // =================================================================
 
-// [FIX] Memperbaiki cara mencari base unit dari array item_units
 const baseUnit = computed(() => {
   if (!props.item || !Array.isArray(props.item.item_units)) {
     return undefined
   }
-  // Mencari di item_units dimana unit_id sama dengan base_unit_id
   return props.item.item_units.find(iu => iu.unit.id === props.item.base_unit_id)
 })
 
 const formattedBasePrice = computed(() => {
   const price = props.item.price || 0
-
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price)
 })
 
-// [FIX] Mengambil nama dari nested object unit
 const baseUnitName = computed(() => {
   return props.item.base_unit?.name || ''
 })
@@ -316,41 +539,59 @@ const isAllCategoriesSelected = computed(() => {
   return categories.value.length > 0 && form.selectedCategories.length === categories.value.length
 })
 
+// [BARU] Computed property untuk menyediakan daftar unit ke VSelect di dialog restock
+const availableRestockUnits = computed(() => {
+  if (!props.item || !props.item.item_units) {
+    return []
+  }
+  // Memetakan item_units menjadi format yang bisa dibaca VSelect
+  return props.item.item_units.map(itemUnit => ({
+    id: itemUnit.unit.id,
+    name: itemUnit.unit.name,
+  }))
+})
+
 // =================================================================
 // Functions: Dialog Management
 // =================================================================
 
 const openItemFormDialog = () => {
-  // [FIX] Memetakan data dari props ke form dengan benar
   const { item } = props
-
   form.name = item.name
   form.barcode = item.barcode
   form.description = item.description || ''
   form.base_unit_id = item.base_unit_id
-
-  // 1. Memetakan kategori dari categories
   form.selectedCategories = item.categories.map(catLink => catLink.id)
-
-  // 2. Memetakan unit dari item_units ke struktur yang dibutuhkan form
   form.units = item.item_units.map(itemUnit => ({
-    id: itemUnit.unit.id, // ID untuk VSelect adalah ID dari unit itu sendiri
+    id: itemUnit.unit.id,
     price: itemUnit.price,
     cost: itemUnit.cost,
     conversion_to_base: itemUnit.conversion_to_base,
   }))
-
-  // Pastikan unit dasar memiliki konversi 1 dan non-aktif
   const baseUnitInForm = form.units.find(u => u.id === form.base_unit_id)
   if (baseUnitInForm) {
     baseUnitInForm.conversion_to_base = 1
   }
-
-  form.imageFile = null // Reset file input
+  form.imageFile = null
   dialogs.itemForm = true
 }
 
+// [DIUBAH] Mengatur nilai default saat membuka dialog restock
 const openRestockDialog = () => {
+  // Reset form
+  restockForm.transaction_number = ''
+  restockForm.transaction_number_auto = true
+  restockForm.type = 'in'
+  restockForm.description = ''
+  restockForm.quantity = 0
+
+  // [DIUBAH] Atur unit default ke unit pertama yang tersedia di dalam array
+  if (availableRestockUnits.value.length > 0) {
+    restockForm.unit_id = availableRestockUnits.value[0].id
+  } else {
+    restockForm.unit_id = null
+  }
+
   dialogs.restock = true
 }
 
@@ -369,7 +610,6 @@ const addUnit = () => {
 
 const removeUnit = (index: number) => {
   const unitToRemove = form.units[index]
-  // Cegah penghapusan unit dasar
   if (unitToRemove.id === form.base_unit_id) {
     Swal.fire('Aksi Ditolak', 'Tidak dapat menghapus satuan yang menjadi acuan dasar.', 'warning')
     return
@@ -390,23 +630,16 @@ const submitItemForm = async () => {
   isSubmitting.value = true
   try {
     const formData = new FormData()
-
-    // Tambahkan _method 'PUT' untuk memberitahu backend ini adalah update
     formData.append('_method', 'PUT')
-
     formData.append('name', form.name)
     formData.append('barcode', form.barcode)
     formData.append('description', form.description)
     if (form.base_unit_id) {
       formData.append('base_unit_id', String(form.base_unit_id))
     }
-
-    // Kirim kategori
     form.selectedCategories.forEach((id, index) => {
       formData.append(`category[${index}][id]`, String(id))
     })
-
-    // Kirim unit
     form.units.forEach((unit, index) => {
       if (unit.id) {
         formData.append(`unit[${index}][id]`, String(unit.id))
@@ -415,16 +648,12 @@ const submitItemForm = async () => {
         formData.append(`unit[${index}][conversion_to_base]`, String(unit.conversion_to_base))
       }
     })
-
     if (form.imageFile?.[0]) {
       formData.append('image', form.imageFile[0])
     }
-
-    // Gunakan POST, karena FormData dengan PUT tidak selalu didukung penuh
-    await api.post(`/item/${props.item.id}`, formData, {
+    await api.put(`/item/${props.item.id}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
-
     Swal.fire('Berhasil', 'Item berhasil diperbarui.', 'success')
     emit('updated')
   } catch (error: any) {
@@ -437,15 +666,24 @@ const submitItemForm = async () => {
   }
 }
 
+// [DIUBAH] Menambahkan unit_id ke payload
 const submitRestockForm = async () => {
+  // Validasi sederhana
+  if (!restockForm.unit_id || restockForm.quantity <= 0) {
+    Swal.fire('Validasi Gagal', 'Pastikan jumlah item lebih dari 0 dan unit telah dipilih.', 'warning')
+    return
+  }
+
   try {
     const payload = {
       transaction_number: restockForm.transaction_number_auto ? 'auto' : restockForm.transaction_number,
       type: restockForm.type,
       description: restockForm.description,
       quantity: restockForm.quantity,
-      branch_id: branch.id,
+      unit_id: restockForm.unit_id, // Kirim ID unit yang dipilih
+      branch_id: branch.value.id,
     }
+
     const res = await api.post(`/item/${props.item.id}/stock`, payload)
 
     if (res.data.status) {
@@ -456,7 +694,7 @@ const submitRestockForm = async () => {
     }
   } catch (error: any) {
     console.error('Gagal submit restock:', error)
-    Swal.fire('Gagal', error?.message || 'Terjadi kesalahan pada server.', 'error')
+    Swal.fire('Gagal', error?.response?.data?.message || 'Terjadi kesalahan pada server.', 'error')
   } finally {
     closeAllDialogs()
   }
@@ -493,11 +731,9 @@ const handleDeleteItem = async () => {
 const fetchInitialData = async () => {
   try {
     const [categoriesRes, unitsRes] = await Promise.all([api.get(`/category`), api.get(`/unit`)])
-
     if (Array.isArray(categoriesRes.data.data)) {
       categories.value = categoriesRes.data.data
     }
-
     const unitsData = unitsRes.data.data?.units || unitsRes.data.data
     if (Array.isArray(unitsData)) {
       units.value = unitsData
