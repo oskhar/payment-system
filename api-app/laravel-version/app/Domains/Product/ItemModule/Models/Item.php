@@ -15,7 +15,7 @@ class Item extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['name', 'barcode', 'description', 'image_url', 'base_unit_id'];
+    protected $fillable = ['company_id', 'name', 'barcode', 'description', 'image_url', 'base_unit_id'];
 
     public function baseUnit(): BelongsTo
     {

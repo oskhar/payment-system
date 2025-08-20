@@ -19,7 +19,10 @@ class GetAllStockAction
             ->with(['item'])
             ->when($filter->search, function ($query, $search) {
                 $query->where('transaction_number', 'LIKE', "%{$search}%");
-            });
+            })
+            ->when($filter->branch_id, function ($query, $branchId) {
+                $query->where('branch_id', $branchId);
+            });;
         $paginator = $query->paginate($filter->limit)->withQueryString();
 
         $stocks = StockData::collect($paginator->getCollection()->map(function (Stock $stock) {

@@ -21,7 +21,6 @@ class Stock extends Model
     protected $fillable = [
         'branch_id',
         'item_id',
-        'created_by',
         'transaction_number',
         'quantity',
         'type',

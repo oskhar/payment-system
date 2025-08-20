@@ -6,8 +6,12 @@ use App\Domains\Inventory\StockModule\Models\Stock;
 
 class GetStockService
 {
-    public function __invoke(int $branch_id, int $item_id): int
+    public function __invoke(?int $branch_id, ?int $item_id): int
     {
+        if (!$branch_id || !$item_id) {
+            return 0;
+        }
+
         $stockIn = Stock::where('branch_id', $branch_id)
             ->where('item_id', $item_id)
             ->where('type', 'in')

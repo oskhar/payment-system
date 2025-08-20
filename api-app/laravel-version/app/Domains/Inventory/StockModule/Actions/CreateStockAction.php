@@ -17,7 +17,7 @@ class CreateStockAction
 {
     use AsAction;
 
-    public function handle(CreateStockData $createStockData): Stock
+    public function handle(string $item_id, CreateStockData $createStockData): Stock
     {
         $isAutoTransactionNumber = $createStockData->transaction_number === 'auto';
         if ($isAutoTransactionNumber)
@@ -33,7 +33,7 @@ class CreateStockAction
         if (!$existBranch)
             throw new UnprocessableEntityException('Branch not found');
 
-        $existItem = Item::where('id', $createStockData->item_id)->first();
+        $existItem = Item::where('id', $item_id)->first();
         if (!$existItem)
             throw new UnprocessableEntityException('Item not found');
 
@@ -41,7 +41,7 @@ class CreateStockAction
         if (!$existUnit)
             throw new UnprocessableEntityException('Unit not found');
 
-        $existItemUnit = ItemUnit::where('item_id', $createStockData->item_id)
+        $existItemUnit = ItemUnit::where('item_id', $item_id)
             ->where('unit_id', $createStockData->unit_id)
             ->select('conversion_to_base')
             ->first();
@@ -54,17 +54,16 @@ class CreateStockAction
         return Stock::create([
             'transaction_number' => $createStockData->transaction_number,
             'branch_id' => $createStockData->branch_id,
-            'item_id' => $createStockData->item_id,
-            'unit_id' => $createStockData->unit_id,
+            'item_id' => $item_id,
             'quantity' => $finalQuantity,
             'type' => $createStockData->type,
             'description' => $createStockData->description,
         ]);
     }
 
-    public function asController(CreateStockData $createStockData): JsonResponse
+    public function asController(string $item_id, CreateStockData $createStockData): JsonResponse
     {
-        $stock = $this->handle($createStockData);
+        $stock = $this->handle($item_id, $createStockData);
 
         return response()->json([
             'stock' => $stock,

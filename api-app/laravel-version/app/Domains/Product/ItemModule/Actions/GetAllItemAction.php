@@ -25,7 +25,7 @@ class GetAllItemAction
         $paginator = $query->paginate($filter->limit)->withQueryString();
 
         // 4. Transformasi hasil untuk menambahkan data harga, biaya, dan stok
-        $transformedItems = $paginator->getCollection()->map(function (Item $item) {
+        $transformedItems = $paginator->getCollection()->map(function (Item $item) use ($filter) {
             $baseItemUnit = $item->itemUnits->firstWhere('unit_id', $item->base_unit_id);
 
             return [
@@ -39,7 +39,7 @@ class GetAllItemAction
                 'item_units' => $item->itemUnits,
                 'price' => $baseItemUnit?->price,
                 'cost' => $baseItemUnit?->cost,
-                'stock' => (new GetStockService())($item->branch_id, $item->id),
+                'stock' => (new GetStockService())($filter->branch_id, $item->id),
             ];
         });
 

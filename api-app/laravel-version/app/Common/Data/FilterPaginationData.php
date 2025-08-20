@@ -12,5 +12,6 @@ class FilterPaginationData extends Data
         public ?string $search,
         public ?string $sort_by,
         public ?string $sort_type,
+        public ?int $branch_id,
     ) {}
 }

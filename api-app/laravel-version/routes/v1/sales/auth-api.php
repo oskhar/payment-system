@@ -1,14 +1,14 @@
 <?php
 
 use App\Domains\Sales\AuthenticationModule\Actions\LoginAction;
+use App\Domains\Sales\UserModule\Data\UserData;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/auth/login', LoginAction::class);
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/auth/me', function (Request $request) {
-        return Auth::user();
+    Route::post('/auth/me', function (Request $request) {
+        return UserData::fromAuth();
     });
 });
 

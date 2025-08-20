@@ -12,6 +12,7 @@ return new class extends Migration {
     {
         Schema::create('branches', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('company_id')->constrained('companies');
             $table->string('name');
             $table->string('address');
             $table->timestamps();

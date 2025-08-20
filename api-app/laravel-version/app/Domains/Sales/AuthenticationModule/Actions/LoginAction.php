@@ -19,16 +19,16 @@ class LoginAction
      * Method ini adalah inti dari logic action.
      * Seringkali diberi nama 'handle' sebagai konvensi, tapi 'execute' juga tidak masalah.
      */
-    public function handle(LoginData $loginData): JsonResponse
+    public function handle(LoginData $loginData): array
     {
         $user = $loginData->validateUser('user');
         $generate = ($this->generateAccessToken)($user, $loginData->remember_me);
 
-        return response()->json([
+        return [
             'user' => $user,
             'access_token' => $generate->access_token,
             'expires_at' => $generate->expires_at,
-        ]);
+        ];
     }
 
     /**
@@ -37,6 +37,7 @@ class LoginAction
      */
     public function asController(LoginData $loginData): JsonResponse
     {
-        return $this->handle($loginData);
+        $result = $this->handle($loginData);
+        return response()->json($result);
     }
 }

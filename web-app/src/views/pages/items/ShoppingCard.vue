@@ -154,7 +154,7 @@
   <VDialog v-model="dialogs.restock" max-width="500" persistent>
     <VCard>
       <VForm @submit.prevent="submitRestockForm">
-        <VCardTitle class="pa-4"> Restock: {{ item.name }} </VCardTitle>
+        <VCardTitle class="pa-4"> Restock: {{ item.name }} - <b class="text-primary">{{ branch.name }}</b></VCardTitle>
         <VCardText>
           <VTextField v-model="restockForm.transaction_number"
             :label="restockForm.transaction_number_auto ? 'No Transaksi (Otomatis)' : 'No Transaksi'"
@@ -191,6 +191,9 @@ import api from '@/api'
 // Type Definitions
 // [UBAH] Menyesuaikan interface agar cocok dengan data JSON dari API
 // =================================================================
+
+const branch = ref<Branch>(JSON.parse(localStorage.getItem('selectedBranch')));
+
 interface Unit {
   id: number
   name: string
@@ -441,6 +444,7 @@ const submitRestockForm = async () => {
       type: restockForm.type,
       description: restockForm.description,
       quantity: restockForm.quantity,
+      branch_id: branch.id,
     }
     const res = await api.post(`/item/${props.item.id}/stock`, payload)
 

@@ -10,7 +10,6 @@ class CreateStockData extends Data
     public function __construct(
         public ?string $transaction_number = 'auto',
         public int $branch_id,
-        public int $item_id,
         public int $unit_id,
         public int $quantity,
         public StockTypeEnum $type,

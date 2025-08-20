@@ -16,6 +16,7 @@ return new class extends Migration {
         // 1. Buat tabel 'units' dan 'categories' terlebih dahulu karena tidak memiliki dependensi.
         Schema::create('units', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('company_id')->constrained('companies');
             $table->string('name');
             $table->string('abbreviation', 10);
             $table->timestamps();
@@ -24,6 +25,7 @@ return new class extends Migration {
 
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('company_id')->constrained('companies');
             $table->string('name');
             $table->timestamps();
             $table->softDeletes();
@@ -32,6 +34,7 @@ return new class extends Migration {
         // 2. Buat tabel 'items' yang bergantung pada 'units'.
         Schema::create('items', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('company_id')->constrained('companies');
             $table->string('name');
             $table->string('barcode')->unique();
             $table->text('description')->nullable();

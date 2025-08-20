@@ -12,7 +12,7 @@ class Category extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['name'];
+    protected $fillable = ['company_id', 'name'];
 
     public function items(): BelongsToMany
     {

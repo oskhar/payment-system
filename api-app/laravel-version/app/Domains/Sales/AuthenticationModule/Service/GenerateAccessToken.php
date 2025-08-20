@@ -13,7 +13,7 @@ class GenerateAccessToken
      *
      * @return mixed
      */
-    public function __invoke(User $user, bool $remember_me = false): AccessToken
+    public function __invoke(User $user, ?bool $remember_me = false): AccessToken
     {
         return AccessToken::from([
             'access_token' => $user->createToken(

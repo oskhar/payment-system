@@ -10,5 +10,5 @@ class Unit extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['name', 'abbreviation'];
+    protected $fillable = ['company_id', 'name', 'abbreviation'];
 }

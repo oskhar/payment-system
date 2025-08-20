@@ -46,4 +46,12 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Mendapatkan data company yang dimiliki oleh user.
+     */
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
 }

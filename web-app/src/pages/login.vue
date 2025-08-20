@@ -2,8 +2,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useTheme } from 'vuetify'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
 import Swal from 'sweetalert2'
+import api from '@/api'
 import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
 
 import logo from '@images/logo-toko.png'
@@ -37,10 +37,11 @@ const handleLogin = async () => {
     const payload = {
       email: form.value.email,
       password: form.value.password,
+      remember_me: form.value.rememberMe,
     }
 
     // Kirim request ke endpoint login
-    const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, payload)
+    const response = await api.post('auth/login', payload)
 
     // Asumsikan token ada di response.data.auth_token
     const token = response.data.data.access_token
