@@ -91,18 +91,18 @@
             Restock
           </VBtn>
         </VCol>
-        <!-- <VCol class="pl-2"> -->
-        <!--   <VBtn -->
-        <!--     prepend-icon="ri-pencil-line" -->
-        <!--     block -->
-        <!--     color="primary" -->
-        <!--     variant="tonal" -->
-        <!--     data-testid="edit-button" -->
-        <!--     @click="openItemFormDialog" -->
-        <!--   > -->
-        <!--     Edit -->
-        <!--   </VBtn> -->
-        <!-- </VCol> -->
+        <VCol class="pl-2">
+          <VBtn
+            prepend-icon="ri-pencil-line" 
+            block 
+            color="primary" 
+            variant="tonal" 
+            data-testid="edit-button" 
+            @click="openItemFormDialog" 
+          > 
+            Edit 
+          </VBtn> 
+        </VCol>
       </VRow>
     </VCardActions>
   </VCard>
