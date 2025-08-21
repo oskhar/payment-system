@@ -39,6 +39,7 @@ class GetAllItemAction
                 'base_unit' => $item->baseUnit,
                 'categories' => $item->categories,
                 'item_units' => $item->itemUnits,
+                'base_unit_id' => $item->base_unit_id,
                 'price' => $baseItemUnit?->price,
                 'wholesale_price' => $baseItemUnit?->wholesale_price,
                 'cost' => $baseItemUnit?->cost,

@@ -1,12 +1,10 @@
 <template>
-  <!-- SECTION: Card Display -->
   <VCard
     class="shopping-card"
     elevation="4"
     max-width="360"
     rounded="xl"
   >
-    <!-- Delete Button -->
     <VBtn
       icon
       variant="flat"
@@ -19,7 +17,6 @@
       <VIcon icon="ri-close-line" />
     </VBtn>
 
-    <!-- Product Image -->
     <VImg
       :src="item.image_url"
       :alt="`Gambar ${item.name}`"
@@ -27,7 +24,6 @@
       cover
     />
 
-    <!-- Main Content -->
     <VCardText class="pt-4">
       <h3 class="title">
         {{ item.name }}
@@ -64,7 +60,6 @@
       </p>
       <p class="barcode">Barcode: {{ item.barcode || '-' }}</p>
 
-      <!-- Categories -->
       <div
         v-if="item.categories?.length"
         class="categories"
@@ -82,7 +77,6 @@
       </div>
     </VCardText>
 
-    <!-- Actions -->
     <VCardActions class="pa-4 pt-0">
       <VRow no-gutters>
         <VCol>
@@ -97,24 +91,21 @@
             Restock
           </VBtn>
         </VCol>
-        <VCol class="pl-2">
-          <VBtn
-            prepend-icon="ri-pencil-line"
-            block
-            color="primary"
-            variant="tonal"
-            data-testid="edit-button"
-            @click="openItemFormDialog"
-          >
-            Edit
-          </VBtn>
-        </VCol>
+        <!-- <VCol class="pl-2"> -->
+        <!--   <VBtn -->
+        <!--     prepend-icon="ri-pencil-line" -->
+        <!--     block -->
+        <!--     color="primary" -->
+        <!--     variant="tonal" -->
+        <!--     data-testid="edit-button" -->
+        <!--     @click="openItemFormDialog" -->
+        <!--   > -->
+        <!--     Edit -->
+        <!--   </VBtn> -->
+        <!-- </VCol> -->
       </VRow>
     </VCardActions>
   </VCard>
-  <!-- !SECTION -->
-
-  <!-- SECTION: Edit Item Dialog -->
   <VDialog
     v-model="dialogs.itemForm"
     max-width="800"
@@ -133,7 +124,6 @@
 
         <VCardText class="pb-0">
           <VRow>
-            <!-- Kolom Kiri: Info Dasar -->
             <VCol
               cols="12"
               md="6"
@@ -188,7 +178,6 @@
               />
             </VCol>
 
-            <!-- Kolom Kanan: Pengaturan Satuan & Harga -->
             <VCol
               cols="12"
               md="6"
@@ -315,9 +304,6 @@
       </VForm>
     </VCard>
   </VDialog>
-  <!-- !SECTION -->
-
-  <!-- SECTION: Restock Dialog -->
   <VDialog
     v-model="dialogs.restock"
     max-width="500"
@@ -326,8 +312,8 @@
     <VCard>
       <VForm @submit.prevent="submitRestockForm">
         <VCardTitle class="pa-4">
-          Restock: {{ item.name }} - <b class="text-primary">{{ branch.name }}</b></VCardTitle
-        >
+          Restock: {{ item.name }} - <b class="text-primary">{{ branch.name }}</b>
+        </VCardTitle>
         <VCardText>
           <VTextField
             v-model="restockForm.transaction_number"
@@ -352,7 +338,6 @@
             required
           />
 
-          <!-- [BARU] Tambahkan VRow untuk mensejajarkan Jumlah dan Unit -->
           <VRow>
             <VCol cols="8">
               <VTextField
@@ -403,7 +388,6 @@
       </VForm>
     </VCard>
   </VDialog>
-  <!-- !SECTION -->
 </template>
 
 <script setup lang="ts">
@@ -502,29 +486,21 @@ const form = reactive({
   imageFile: null as File[] | null,
 })
 
-// [DIUBAH] Menambahkan unit_id ke restockForm
 const restockForm = reactive({
   transaction_number: '',
   transaction_number_auto: true,
   type: 'in',
   description: '',
   quantity: 0,
-  unit_id: null as number | null, // Properti baru untuk menyimpan ID unit
+  unit_id: null as number | null,
 })
 
 const categories = ref<Category[]>([])
-const units = ref<Unit[]>([]) // Untuk VSelect
+const units = ref<Unit[]>([])
 
 // =================================================================
 // Computed Properties
 // =================================================================
-
-const baseUnit = computed(() => {
-  if (!props.item || !Array.isArray(props.item.item_units)) {
-    return undefined
-  }
-  return props.item.item_units.find(iu => iu.unit.id === props.item.base_unit_id)
-})
 
 const formattedBasePrice = computed(() => {
   const price = props.item.price || 0
@@ -539,12 +515,10 @@ const isAllCategoriesSelected = computed(() => {
   return categories.value.length > 0 && form.selectedCategories.length === categories.value.length
 })
 
-// [BARU] Computed property untuk menyediakan daftar unit ke VSelect di dialog restock
 const availableRestockUnits = computed(() => {
   if (!props.item || !props.item.item_units) {
     return []
   }
-  // Memetakan item_units menjadi format yang bisa dibaca VSelect
   return props.item.item_units.map(itemUnit => ({
     id: itemUnit.unit.id,
     name: itemUnit.unit.name,
@@ -558,34 +532,39 @@ const availableRestockUnits = computed(() => {
 const openItemFormDialog = () => {
   const { item } = props
   form.name = item.name
-  form.barcode = item.barcode
+  form.barcode = item.barcode || ''
   form.description = item.description || ''
   form.base_unit_id = item.base_unit_id
-  form.selectedCategories = item.categories.map(catLink => catLink.id)
+
+  // Mapping dari relasi ke array ID sederhana untuk VSelect
+  form.selectedCategories = item.categories.map(catLink => catLink.category_id)
+
+  // Mapping dari item_units ke struktur FormUnit yang lebih sederhana
   form.units = item.item_units.map(itemUnit => ({
-    id: itemUnit.unit.id,
+    id: itemUnit.unit_id,
     price: itemUnit.price,
+    wholesale_price: itemUnit.wholesale_price,
     cost: itemUnit.cost,
     conversion_to_base: itemUnit.conversion_to_base,
   }))
+
+  // Pastikan konversi untuk satuan dasar adalah 1
   const baseUnitInForm = form.units.find(u => u.id === form.base_unit_id)
   if (baseUnitInForm) {
     baseUnitInForm.conversion_to_base = 1
   }
+
   form.imageFile = null
   dialogs.itemForm = true
 }
 
-// [DIUBAH] Mengatur nilai default saat membuka dialog restock
 const openRestockDialog = () => {
-  // Reset form
   restockForm.transaction_number = ''
   restockForm.transaction_number_auto = true
   restockForm.type = 'in'
   restockForm.description = ''
   restockForm.quantity = 0
 
-  // [DIUBAH] Atur unit default ke unit pertama yang tersedia di dalam array
   if (availableRestockUnits.value.length > 0) {
     restockForm.unit_id = availableRestockUnits.value[0].id
   } else {
@@ -605,7 +584,7 @@ const closeAllDialogs = () => {
 // =================================================================
 
 const addUnit = () => {
-  form.units.push({ id: null, price: 0, cost: 0, conversion_to_base: 0 })
+  form.units.push({ id: null, price: 0, cost: 0, wholesale_price: 0, conversion_to_base: 0 })
 }
 
 const removeUnit = (index: number) => {
@@ -618,8 +597,11 @@ const removeUnit = (index: number) => {
 }
 
 const toggleSelectAllCategories = () => {
-  if (isAllCategoriesSelected.value) form.selectedCategories = []
-  else form.selectedCategories = categories.value.map(c => c.id)
+  if (isAllCategoriesSelected.value) {
+    form.selectedCategories = []
+  } else {
+    form.selectedCategories = categories.value.map(c => c.id)
+  }
 }
 
 // =================================================================
@@ -627,48 +609,64 @@ const toggleSelectAllCategories = () => {
 // =================================================================
 
 const submitItemForm = async () => {
+  if (isSubmitting.value) return
   isSubmitting.value = true
+
   try {
     const formData = new FormData()
+
+    // [DIUBAH] Menambahkan _method: 'PUT' untuk method spoofing Laravel
     formData.append('_method', 'PUT')
+
+    // Menambahkan data utama
     formData.append('name', form.name)
-    formData.append('barcode', form.barcode)
-    formData.append('description', form.description)
+    formData.append('barcode', form.barcode || '')
+    formData.append('description', form.description || '')
     if (form.base_unit_id) {
       formData.append('base_unit_id', String(form.base_unit_id))
     }
+
+    // Menambahkan data relasi (kategori dan unit)
+    // Backend akan melakukan sinkronisasi (hapus lama, buat baru)
     form.selectedCategories.forEach((id, index) => {
       formData.append(`category[${index}][id]`, String(id))
     })
+
     form.units.forEach((unit, index) => {
       if (unit.id) {
+        // Pastikan hanya unit yang valid yang dikirim
         formData.append(`unit[${index}][id]`, String(unit.id))
         formData.append(`unit[${index}][price]`, String(unit.price))
         formData.append(`unit[${index}][cost]`, String(unit.cost))
+        formData.append(`unit[${index}][wholesale_price]`, String(unit.wholesale_price))
         formData.append(`unit[${index}][conversion_to_base]`, String(unit.conversion_to_base))
       }
     })
+
+    // Menambahkan file gambar hanya jika ada yang baru diupload
     if (form.imageFile?.[0]) {
       formData.append('image', form.imageFile[0])
     }
+
+    // [DIUBAH] Menggunakan api.post ke endpoint update. Laravel akan menangani _method spoofing.
+    // Ini adalah cara standar dan paling andal untuk mengirim form dengan file.
     await api.put(`/item/${props.item.id}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
+
     Swal.fire('Berhasil', 'Item berhasil diperbarui.', 'success')
     emit('updated')
+    closeAllDialogs()
   } catch (error: any) {
     console.error('Gagal submit form:', error)
     const message = error.response?.data?.message || 'Terjadi kesalahan saat menyimpan data.'
     Swal.fire('Gagal', message, 'error')
   } finally {
     isSubmitting.value = false
-    closeAllDialogs()
   }
 }
 
-// [DIUBAH] Menambahkan unit_id ke payload
 const submitRestockForm = async () => {
-  // Validasi sederhana
   if (!restockForm.unit_id || restockForm.quantity <= 0) {
     Swal.fire('Validasi Gagal', 'Pastikan jumlah item lebih dari 0 dan unit telah dipilih.', 'warning')
     return
@@ -680,23 +678,17 @@ const submitRestockForm = async () => {
       type: restockForm.type,
       description: restockForm.description,
       quantity: restockForm.quantity,
-      unit_id: restockForm.unit_id, // Kirim ID unit yang dipilih
+      unit_id: restockForm.unit_id,
       branch_id: branch.value.id,
     }
 
-    const res = await api.post(`/item/${props.item.id}/stock`, payload)
-
-    if (res.data.status) {
-      emit('updated')
-      Swal.fire('Berhasil', 'Stok item berhasil diupdate.', 'success')
-    } else {
-      Swal.fire('Gagal', res.data.message || 'Gagal melakukan restock.', 'error')
-    }
+    await api.post(`/item/${props.item.id}/stock`, payload)
+    emit('updated')
+    Swal.fire('Berhasil', 'Stok item berhasil diupdate.', 'success')
+    closeAllDialogs()
   } catch (error: any) {
     console.error('Gagal submit restock:', error)
     Swal.fire('Gagal', error?.response?.data?.message || 'Terjadi kesalahan pada server.', 'error')
-  } finally {
-    closeAllDialogs()
   }
 }
 
@@ -731,8 +723,8 @@ const handleDeleteItem = async () => {
 const fetchInitialData = async () => {
   try {
     const [categoriesRes, unitsRes] = await Promise.all([api.get(`/category`), api.get(`/unit`)])
-    if (Array.isArray(categoriesRes.data.data)) {
-      categories.value = categoriesRes.data.data
+    if (Array.isArray(categoriesRes.data.data.categories)) {
+      categories.value = categoriesRes.data.data.categories
     }
     const unitsData = unitsRes.data.data?.units || unitsRes.data.data
     if (Array.isArray(unitsData)) {

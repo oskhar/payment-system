@@ -24,6 +24,7 @@
     "dotenv": "^16.4.7",
     "electron": "^36.5.0",
     "html2pdf.js": "^0.10.3",
+    "jspdf-autotable": "^5.0.2",
     "pinia": "^2.3.0",
     "prismjs": "^1.29.0",
     "roboto-fontface": "^0.10.0",

@@ -36,7 +36,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('company_id')->constrained('companies');
             $table->string('name');
-            $table->string('barcode')->unique();
+            $table->string('barcode')->nullable();
             $table->text('description')->nullable();
             $table->string('image_url')->nullable();
             $table->foreignId('base_unit_id')->constrained('units');

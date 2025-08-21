@@ -12,7 +12,7 @@ class CreateItemData extends Data
 {
     public function __construct(
         public string $name,
-        public string $barcode,
+        public ?string $barcode,
         public int $base_unit_id,
 
         /**

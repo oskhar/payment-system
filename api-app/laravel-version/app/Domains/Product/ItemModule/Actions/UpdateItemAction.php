@@ -33,6 +33,7 @@ class UpdateItemAction
      */
     public function handle(Item $item, UpdateItemData $updateItemData): void
     {
+        dd($updateItemData->unit);
         $imagePath = $item->getRawOriginal('image_url');  // Ambil path gambar saat ini dari database
 
         // === 1. Logika untuk menangani upload gambar baru ===

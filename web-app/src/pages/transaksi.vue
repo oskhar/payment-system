@@ -19,6 +19,7 @@ interface ItemUnit {
   id: number // ID dari relasi item_unit
   unit_id: number
   price: string // Harga dari API dalam bentuk string
+  wholesale_price: string | null // [BARU] Harga grosir, bisa null
   cost: string
   unit: Unit // Objek Unit yang berisi nama
   conversion_to_base: string
@@ -92,8 +93,7 @@ async function convertImageToRaster(imageUrl: string): Promise<Uint8Array> {
     image.onload = () => {
       const canvas = document.createElement('canvas')
       const context = canvas.getContext('2d', { willReadFrequently: true })
-      if (!context)
-        return reject(new Error('Gagal mendapatkan konteks canvas'))
+      if (!context) return reject(new Error('Gagal mendapatkan konteks canvas'))
 
       const maxLogoWidth = 160
       let targetWidth = image.width
@@ -105,8 +105,7 @@ async function convertImageToRaster(imageUrl: string): Promise<Uint8Array> {
         targetHeight = Math.ceil(image.height * scale)
       }
 
-      if (targetWidth % 8 !== 0)
-        targetWidth = Math.floor(targetWidth / 8) * 8
+      if (targetWidth % 8 !== 0) targetWidth = Math.floor(targetWidth / 8) * 8
 
       canvas.width = targetWidth
       canvas.height = targetHeight
@@ -127,8 +126,7 @@ async function convertImageToRaster(imageUrl: string): Promise<Uint8Array> {
             const g = data[pixelIndex + 1]
             const b = data[pixelIndex + 2]
             const brightness = (r + g + b) / 3
-            if (brightness < threshold)
-              byte |= 1 << (7 - bit)
+            if (brightness < threshold) byte |= 1 << (7 - bit)
           }
           bytes[byteIndex++] = byte
         }
@@ -139,7 +137,7 @@ async function convertImageToRaster(imageUrl: string): Promise<Uint8Array> {
       const yL = canvas.height % 256
       const yH = Math.floor(canvas.height / 256)
 
-      const command = new Uint8Array([0x1D, 0x76, 0x30, 0x00, xL, xH, yL, yH])
+      const command = new Uint8Array([0x1d, 0x76, 0x30, 0x00, xL, xH, yL, yH])
       const finalData = new Uint8Array(command.length + bytes.length)
       finalData.set(command, 0)
       finalData.set(bytes, command.length)
@@ -153,19 +151,15 @@ async function convertImageToRaster(imageUrl: string): Promise<Uint8Array> {
 const setupDevice = async (selectedDevice: USBDevice) => {
   device.value = selectedDevice
   await device.value.open()
-  if (device.value.configuration === null)
-    await device.value.selectConfiguration(1)
+  if (device.value.configuration === null) await device.value.selectConfiguration(1)
 
   const interfaceNumber = 0
   try {
-    if (device.value.configuration?.interfaces[interfaceNumber].claimed)
-      console.log('Interface sudah di-claim.')
+    if (device.value.configuration?.interfaces[interfaceNumber].claimed) console.log('Interface sudah di-claim.')
     else await device.value.claimInterface(interfaceNumber)
-  }
-  catch (error) {
+  } catch (error) {
     console.warn('Gagal claim interface, mencoba detach kernel driver...', error)
-    if (device.value.detachKernelDriver)
-      await device.value.detachKernelDriver(interfaceNumber)
+    if (device.value.detachKernelDriver) await device.value.detachKernelDriver(interfaceNumber)
     await device.value.claimInterface(interfaceNumber)
   }
 
@@ -175,7 +169,7 @@ const setupDevice = async (selectedDevice: USBDevice) => {
 
   if (endpoint.value) {
     isPrinterConnected.value = true
-    console.log('✅ Printer USB berhasil terhubung.')
+    console.log('??? Printer USB berhasil terhubung.')
     toast.fire({ icon: 'success', title: 'Printer terhubung.' })
   }
 }
@@ -193,20 +187,17 @@ const connectUsbPrinter = async (requestNew = false) => {
       selectedDevice = await navigator.usb.requestDevice({
         filters: [{ vendorId: VENDOR_ID, productId: PRODUCT_ID }],
       })
-    }
-    else {
+    } else {
       const devices = await navigator.usb.getDevices()
       selectedDevice = devices.find(d => d.vendorId === VENDOR_ID && d.productId === PRODUCT_ID) || null
     }
 
     if (!selectedDevice) {
-      if (!requestNew)
-        console.log('Tidak ada printer yang diizinkan. Klik tombol untuk menghubungkan.')
+      if (!requestNew) console.log('Tidak ada printer yang diizinkan. Klik tombol untuk menghubungkan.')
       return
     }
     await setupDevice(selectedDevice)
-  }
-  catch (error: any) {
+  } catch (error: any) {
     console.error('Gagal koneksi ke USB printer:', error)
     if (error.name !== 'NotFoundError')
       toast.fire({ icon: 'error', title: 'Gagal claim interface. Di Linux, periksa udev rules.' })
@@ -244,14 +235,13 @@ const printReceiptToUsb = async () => {
     const quantityPrice = `${item.quantity} x ${itemPrice.toLocaleString('id-ID')}`
     const subtotal = itemPrice * item.quantity
     const formattedSubtotal = `Rp${subtotal.toLocaleString('id-ID')}`
-    
+
     // Menambahkan nama unit ke dalam struk
     const itemNameWithUnit = `${item.product.name} (${item.resolvedUnitName})`
     const maxItemNameLength = paperWidthChars - 1
-    const itemName = itemNameWithUnit.length > maxItemNameLength
-      ? itemNameWithUnit.substring(0, maxItemNameLength)
-      : itemNameWithUnit
-      
+    const itemName =
+      itemNameWithUnit.length > maxItemNameLength ? itemNameWithUnit.substring(0, maxItemNameLength) : itemNameWithUnit
+
     detailsLines += `${itemName}\n`
     const priceLine = `  ${quantityPrice}`.padEnd(paperWidthChars - formattedSubtotal.length) + formattedSubtotal
     detailsLines += `${priceLine}\n`
@@ -296,9 +286,8 @@ const printReceiptToUsb = async () => {
     }
 
     await device.value.transferOut(endpoint.value.endpointNumber, dataToSend)
-    console.log('✅ Struk berhasil dikirim ke printer.')
-  }
-  catch (err) {
+    console.log('??? Struk berhasil dikirim ke printer.')
+  } catch (err) {
     console.error('Gagal mencetak ke USB printer:', err)
     toast.fire({ icon: 'error', title: 'Gagal mencetak struk.' })
   }
@@ -317,28 +306,31 @@ const toast = Swal.mixin({
 })
 
 const filteredProducts = computed(() => {
-  if (!searchQuery.value)
-    return products.value
+  if (!searchQuery.value) return products.value
 
   return products.value.filter(
     p =>
-      p.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-      || (p.barcode && p.barcode.includes(searchQuery.value)),
+      p.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      (p.barcode && p.barcode.includes(searchQuery.value)),
   )
 })
 
-// [BARU] Fungsi helper untuk mendapatkan harga berdasarkan unit yang dipilih
+// [MODIFIKASI] Fungsi helper untuk mendapatkan harga berdasarkan unit dan kuantitas
 const getSelectedUnitPrice = (cartItem: CartItem): number => {
-  if (!cartItem.selected_unit_id)
-    return 0 // Jika tidak ada unit terpilih, harga 0
+  if (!cartItem.selected_unit_id) return 0 // Jika tidak ada unit terpilih, harga 0
 
   // Cari data item_unit yang cocok di dalam produk
-  const selectedItemUnit = cartItem.product.item_units.find(
-    iu => iu.unit.id === cartItem.selected_unit_id,
-  )
+  const selectedItemUnit = cartItem.product.item_units.find(iu => iu.unit.id === cartItem.selected_unit_id)
 
-  // Kembalikan harga dari unit tersebut (ubah string ke angka)
-  return selectedItemUnit ? parseFloat(selectedItemUnit.price) : 0
+  if (!selectedItemUnit) return 0
+
+  // Cek apakah kuantitas memenuhi syarat untuk harga grosir DAN harga grosir tersedia
+  if (cartItem.quantity >= 5 && selectedItemUnit.wholesale_price) {
+    return parseFloat(selectedItemUnit.wholesale_price)
+  }
+
+  // Jika tidak, gunakan harga normal
+  return parseFloat(selectedItemUnit.price)
 }
 
 // [PERBAIKAN] totalPrice sekarang menggunakan fungsi baru
@@ -349,25 +341,20 @@ const totalPrice = computed(() => {
   }, 0)
 })
 
-// [DIHAPUS] Fungsi getPriceForQuantity tidak diperlukan lagi
-
 const fetchProducts = async () => {
   try {
     const response = await api.get('item', { params: { branch_id: branch.value.id } })
     products.value = response.data.data.items.map((row: any) => ({
       ...row,
       image_url: row.image_url
-        ? `${import.meta.env.VITE_API_URL}${row.image_url}`
+        ? `${import.meta.env.VITE_API_URL}/public${row.image_url}`
         : 'https://placehold.co/360x220/EBF4FF/767676?text=No+Image',
     }))
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Gagal mengambil data produk:', error)
     toast.fire({ icon: 'error', title: 'Gagal memuat produk.' })
   }
 }
-
-// [DIHAPUS] Fungsi fetchUnitsForItem tidak diperlukan lagi
 
 // [PERBAIKAN] addToCart disederhanakan
 const addToCart = (product: Item) => {
@@ -375,8 +362,7 @@ const addToCart = (product: Item) => {
 
   if (existingItemIndex !== -1) {
     cart.value[existingItemIndex].quantity++
-  }
-  else {
+  } else {
     // Tentukan unit default saat item pertama kali ditambahkan
     // Prioritas: base_unit dari produk, atau unit pertama jika base_unit null
     const defaultUnitId = product.base_unit?.id ?? product.item_units[0]?.unit.id ?? null
@@ -394,10 +380,8 @@ const incrementQuantity = (index: number) => {
 }
 
 const decrementQuantity = (index: number) => {
-  if (cart.value[index].quantity > 1)
-    cart.value[index].quantity--
-  else
-    cart.value.splice(index, 1)
+  if (cart.value[index].quantity > 1) cart.value[index].quantity--
+  else cart.value.splice(index, 1)
 }
 
 const checkout = async () => {
@@ -422,7 +406,7 @@ const checkout = async () => {
       total_amount: totalPrice.value,
       payment_method: paymentMethod.value,
       branch_id: branch.value.id,
-      items: cart.value.map(cartItem => ({ // perhatikan perubahan 'item' menjadi 'items' jika API Anda menggunakan bentuk jamak
+      items: cart.value.map(cartItem => ({
         unit_id: cartItem.selected_unit_id,
         item_id: cartItem.product.id,
         quantity: cartItem.quantity,
@@ -434,14 +418,14 @@ const checkout = async () => {
 
     // [PERBAIKAN] Backup data untuk cetak struk dengan menyimpan harga dan nama unit yang sudah final
     cartBackup.value = cart.value.map(item => {
-        const selectedUnitInfo = item.product.item_units.find(iu => iu.unit.id === item.selected_unit_id)
-        return {
-            ...item,
-            resolvedPrice: getSelectedUnitPrice(item),
-            resolvedUnitName: selectedUnitInfo?.unit.name || 'N/A',
-        }
+      const selectedUnitInfo = item.product.item_units.find(iu => iu.unit.id === item.selected_unit_id)
+      return {
+        ...item,
+        resolvedPrice: getSelectedUnitPrice(item),
+        resolvedUnitName: selectedUnitInfo?.unit.name || 'N/A',
+      }
     })
-    
+
     totalPriceBackup.value = totalPrice.value
     paymentMethodBackup.value = paymentMethod.value
     transactionNumber.value = data.data.transaction_number || ''
@@ -451,15 +435,13 @@ const checkout = async () => {
 
     if (isPrinterConnected.value) {
       await printReceiptToUsb()
-    }
-    else {
+    } else {
       toast.fire({ icon: 'info', title: 'Printer tidak terhubung. Nota dapat dicetak dari riwayat penjualan.' })
     }
 
     cart.value = []
     await fetchProducts()
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Gagal checkout:', error)
     const errorMessage = error instanceof Error ? error.message : 'Gagal saat checkout.'
     toast.fire({ icon: 'error', title: errorMessage })
@@ -474,19 +456,16 @@ const handleScanKeydown = (e: KeyboardEvent) => {
       if (matchedItem) {
         addToCart(matchedItem)
         toast.fire({ icon: 'success', title: `${matchedItem.name} ditambahkan.` })
-      }
-      else {
+      } else {
         toast.fire({ icon: 'error', title: 'Barcode tidak ditemukan.' })
       }
     }
     buffer = ''
     return
   }
-  if (e.key.length === 1)
-    buffer += e.key
+  if (e.key.length === 1) buffer += e.key
 
-  if (scanTimer)
-    clearTimeout(scanTimer)
+  if (scanTimer) clearTimeout(scanTimer)
 
   scanTimer = setTimeout(() => {
     buffer = ''
@@ -548,9 +527,7 @@ onUnmounted(() => {
             cols="12"
             class="text-center py-10"
           >
-            <VAlert type="info">
-              Belum ada item yang tersedia atau cocok dengan pencarian.
-            </VAlert>
+            <VAlert type="info"> Belum ada item yang tersedia atau cocok dengan pencarian. </VAlert>
           </VCol>
         </template>
       </VCol>
@@ -570,9 +547,7 @@ onUnmounted(() => {
                 title="Hubungkan ke Printer Baru"
                 @click="connectUsbPrinter(true)"
               >
-                <VIcon start>
-                  ri-printer-line
-                </VIcon>
+                <VIcon start> ri-printer-line </VIcon>
                 {{ isPrinterConnected ? 'Terhubung' : 'Hubungkan' }}
               </VBtn>
             </div>
@@ -597,7 +572,10 @@ onUnmounted(() => {
                 :key="`${cartItem.product.id}-${index}`"
                 class="cart-item"
               >
-                <div class="d-flex flex-column" style="width: 100%;">
+                <div
+                  class="d-flex flex-column"
+                  style="width: 100%"
+                >
                   <div class="d-flex justify-space-between align-center">
                     <div>
                       <VListItemTitle class="font-weight-bold">
@@ -633,12 +611,13 @@ onUnmounted(() => {
                       </VBtn>
                     </div>
                   </div>
-                  
+
                   <VSelect
                     v-model="cartItem.selected_unit_id"
                     :items="cartItem.product.item_units"
                     item-title="unit.name"
-                    item-value="unit.id" label="Unit"
+                    item-value="unit.id"
+                    label="Unit"
                     variant="outlined"
                     density="compact"
                     class="mt-3"

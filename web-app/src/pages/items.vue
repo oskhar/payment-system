@@ -123,7 +123,7 @@ const fetchItems = async () => {
 
     items.value = response.data.data.items.map((item: any) => ({
       ...item,
-      image_url: `${import.meta.env.VITE_API_URL}${item.image_url}`,
+      image_url: `${import.meta.env.VITE_API_URL}/public${item.image_url}`,
     }))
 
     // pagination.totalPages = response.data.data.totalPages;
